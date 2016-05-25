@@ -12,8 +12,9 @@ uint umin( uint a, uint b ) { return (a<b) ? a : b; }
 uint umax( uint a, uint b ) { return (a>b) ? a : b; }
 
 void rleInit( RLE *R, siz h, siz w, siz m, uint *cnts ) {
-  R->h=h; R->w=w; R->m=m; R->cnts=(m==0)?0:malloc(sizeof(uint)*m);
-  if(cnts) for(siz j=0; j<m; j++) R->cnts[j]=cnts[j];
+  siz j;
+  R->h=h; R->w=w; R->m=m; R->cnts=(m==0)?0:(uint *)malloc(sizeof(uint)*m);
+  if(cnts) for(j=0; j<m; j++) R->cnts[j]=cnts[j];
 }
 
 void rleFree( RLE *R ) {
@@ -21,17 +22,19 @@ void rleFree( RLE *R ) {
 }
 
 void rlesInit( RLE **R, siz n ) {
+  siz i;
   *R = (RLE*) malloc(sizeof(RLE)*n);
-  for(siz i=0; i<n; i++) rleInit((*R)+i,0,0,0,0);
+  for(i=0; i<n; i++) rleInit((*R)+i,0,0,0,0);
 }
 
 void rlesFree( RLE **R, siz n ) {
-  for(siz i=0; i<n; i++) rleFree((*R)+i); free(*R); *R=0;
+  siz i;
+  for(i=0; i<n; i++) rleFree((*R)+i); free(*R); *R=0;
 }
 
 void rleEncode( RLE *R, const byte *M, siz h, siz w, siz n ) {
   siz i, j, k, a=w*h; uint c, *cnts; byte p;
-  cnts = malloc(sizeof(uint)*(a+1));
+  cnts = (uint *)malloc(sizeof(uint)*(a+1));
   for(i=0; i<n; i++) {
     const byte *T=M+a*i; k=0; p=0; c=0;
     for(j=0; j<a; j++) { if(T[j]!=p) { cnts[k++]=c; c=0; p=T[j]; } c++; }
@@ -41,9 +44,10 @@ void rleEncode( RLE *R, const byte *M, siz h, siz w, siz n ) {
 }
 
 void rleDecode( const RLE *R, byte *M, siz n ) {
-  for( siz i=0; i<n; i++ ) {
-    byte v=0; for( siz j=0; j<R[i].m; j++ ) {
-      for( siz k=0; k<R[i].cnts[j]; k++ ) *(M++)=v; v=!v; }}
+  siz i, j, k;
+  for( i=0; i<n; i++ ) {
+    byte v=0; for( j=0; j<R[i].m; j++ ) {
+      for( k=0; k<R[i].cnts[j]; k++ ) *(M++)=v; v=!v; }}
 }
 
 void rleMerge( const RLE *R, RLE *M, siz n, bool intersect ) {
@@ -51,7 +55,7 @@ void rleMerge( const RLE *R, RLE *M, siz n, bool intersect ) {
   siz i, a, b, h=R[0].h, w=R[0].w, m=R[0].m; RLE A, B;
   if(n==0) { rleInit(M,0,0,0,0); return; }
   if(n==1) { rleInit(M,h,w,m,R[0].cnts); return; }
-  cnts = malloc(sizeof(uint)*(h*w+1));
+  cnts = (uint *)malloc(sizeof(uint)*(h*w+1));
   for( a=0; a<m; a++ ) cnts[a]=R[0].cnts[a];
   for( i=1; i<n; i++ ) {
     B=R[i]; if(B.h!=h||B.w!=w) { h=w=m=0; break; }
@@ -70,19 +74,20 @@ void rleMerge( const RLE *R, RLE *M, siz n, bool intersect ) {
 }
 
 void rleArea( const RLE *R, siz n, uint *a ) {
-  for( siz i=0; i<n; i++ ) {
-    a[i]=0; for( siz j=1; j<R[i].m; j+=2 ) a[i]+=R[i].cnts[j]; }
+  siz i, j;
+  for( i=0; i<n; i++ ) {
+    a[i]=0; for( j=1; j<R[i].m; j+=2 ) a[i]+=R[i].cnts[j]; }
 }
 
 void rleIou( RLE *dt, RLE *gt, siz m, siz n, byte *iscrowd, double *o ) {
   siz g, d; BB db, gb; bool crowd;
-  db=malloc(sizeof(double)*m*4); rleToBbox(dt,db,m);
-  gb=malloc(sizeof(double)*n*4); rleToBbox(gt,gb,n);
+  db=(BB)malloc(sizeof(double)*m*4); rleToBbox(dt,db,m);
+  gb=(BB)malloc(sizeof(double)*n*4); rleToBbox(gt,gb,n);
   bbIou(db,gb,m,n,iscrowd,o); free(db); free(gb);
   for( g=0; g<n; g++ ) for( d=0; d<m; d++ ) if(o[g*m+d]>0) {
+    siz ka, kb, a, b; uint c, ca, cb, ct, i, u; bool va, vb;
     crowd=iscrowd!=NULL && iscrowd[g];
     if(dt[d].h!=gt[g].h || dt[d].w!=gt[g].w) { o[g*m+d]=-1; continue; }
-    siz ka, kb, a, b; uint c, ca, cb, ct, i, u; bool va, vb;
     ca=dt[d].cnts[0]; ka=dt[d].m; va=vb=0;
     cb=gt[g].cnts[0]; kb=gt[g].m; a=b=1; i=u=0; ct=1;
     while( ct>0 ) {
@@ -94,6 +99,17 @@ void rleIou( RLE *dt, RLE *gt, siz m, siz n, byte *iscrowd, double *o ) {
     o[g*m+d] = (double)i/(double)u;
   }
 }
+
+
+
+double fmin (double left, double right) {
+	return left > right ? right : left;
+}
+
+double fmax (double left, double right) {
+	return left < right ? right : left;
+}
+
 
 void bbIou( BB dt, BB gt, siz m, siz n, byte *iscrowd, double *o ) {
   double h, w, i, u, ga, da; siz g, d; bool crowd;
@@ -109,7 +125,8 @@ void bbIou( BB dt, BB gt, siz m, siz n, byte *iscrowd, double *o ) {
 }
 
 void rleToBbox( const RLE *R, BB bb, siz n ) {
-  for( siz i=0; i<n; i++ ) {
+  siz i;
+  for( i=0; i<n; i++ ) {
     uint h, w, x, y, xs, ys, xe, ye, cc, t; siz j, m;
     h=(uint)R[i].h; w=(uint)R[i].w; m=R[i].m;
     m=((siz)(m/2))*2; xs=w; ys=h; xe=ye=0; cc=0;
@@ -124,7 +141,8 @@ void rleToBbox( const RLE *R, BB bb, siz n ) {
 }
 
 void rleFrBbox( RLE *R, const BB bb, siz h, siz w, siz n ) {
-  for( siz i=0; i<n; i++ ) {
+  siz i;
+  for( i=0; i<n; i++ ) {
     double xs=bb[4*i+0], xe=xs+bb[4*i+2];
     double ys=bb[4*i+1], ye=ys+bb[4*i+3];
     double xy[8] = {xs,ys,xs,ye,xe,ye,xe,ys};
@@ -137,28 +155,31 @@ int uintCompare(const void *a, const void *b) {
 }
 
 void rleFrPoly( RLE *R, const double *xy, siz k, siz h, siz w ) {
+  double xd, yd; // for "get points along y-boundary and downsample"
+  uint p;        // for "compute rle encoding given y-boundary points"
   // upsample and get discrete points densely along entire boundary
   siz j, m=0; double scale=5; int *x, *y, *u, *v; uint *a, *b;
-  x=malloc(sizeof(int)*(k+1)); y=malloc(sizeof(int)*(k+1));
+  x=(int *)malloc(sizeof(int)*(k+1)); y=(int *)malloc(sizeof(int)*(k+1));
   for(j=0; j<k; j++) x[j]=(int)(scale*xy[j*2+0]+.5); x[k]=x[0];
   for(j=0; j<k; j++) y[j]=(int)(scale*xy[j*2+1]+.5); y[k]=y[0];
   for(j=0; j<k; j++) m+=umax(abs(x[j]-x[j+1]),abs(y[j]-y[j+1]))+1;
-  u=malloc(sizeof(int)*m); v=malloc(sizeof(int)*m); m=0;
+  u=(int *)malloc(sizeof(int)*m); v=(int *)malloc(sizeof(int)*m); m=0;
   for( j=0; j<k; j++ ) {
+	int d;  // for loops
     int xs=x[j], xe=x[j+1], ys=y[j], ye=y[j+1], dx, dy, t;
     bool flip; double s; dx=abs(xe-xs); dy=abs(ys-ye);
     flip = (dx>=dy && xs>xe) || (dx<dy && ys>ye);
     if(flip) { t=xs; xs=xe; xe=t; t=ys; ys=ye; ye=t; }
     s = dx>=dy ? (double)(ye-ys)/dx : (double)(xe-xs)/dy;
-    if(dx>=dy) for( int d=0; d<=dx; d++ ) {
+    if(dx>=dy) for( d=0; d<=dx; d++ ) {
       t=flip?dx-d:d; u[m]=t+xs; v[m]=(int)(ys+s*t+.5); m++;
-    } else for( int d=0; d<=dy; d++ ) {
+    } else for( d=0; d<=dy; d++ ) {
       t=flip?dy-d:d; v[m]=t+ys; u[m]=(int)(xs+s*t+.5); m++;
     }
   }
   // get points along y-boundary and downsample
-  free(x); free(y); k=m; m=0; double xd, yd;
-  x=malloc(sizeof(int)*k); y=malloc(sizeof(int)*k);
+  free(x); free(y); k=m; m=0;
+  x=(int *)malloc(sizeof(int)*k); y=(int *)malloc(sizeof(int)*k);
   for( j=1; j<k; j++ ) if(u[j]!=u[j-1]) {
     xd=(double)(u[j]<u[j-1]?u[j]:u[j]-1); xd=(xd+.5)/scale-.5;
     if( floor(xd)!=xd || xd<0 || xd>w-1 ) continue;
@@ -167,12 +188,12 @@ void rleFrPoly( RLE *R, const double *xy, siz k, siz h, siz w ) {
     x[m]=(int) xd; y[m]=(int) yd; m++;
   }
   // compute rle encoding given y-boundary points
-  k=m; a=malloc(sizeof(uint)*(k+1));
+  k=m; a=(uint *)malloc(sizeof(uint)*(k+1));
   for( j=0; j<k; j++ ) a[j]=(uint)(x[j]*(int)(h)+y[j]);
   a[k++]=(uint)(h*w); free(u); free(v); free(x); free(y);
-  qsort(a,k,sizeof(uint),uintCompare); uint p=0;
+  qsort(a,k,sizeof(uint),uintCompare); p=0;
   for( j=0; j<k; j++ ) { uint t=a[j]; a[j]-=p; p=t; }
-  b=malloc(sizeof(uint)*k); j=m=0; b[m++]=a[j++];
+  b=(uint *)malloc(sizeof(uint)*k); j=m=0; b[m++]=a[j++];
   while(j<k) if(a[j]>0) b[m++]=a[j++]; else {
     j++; if(j<k) b[m-1]+=a[j++]; }
   rleInit(R,h,w,m,b); free(a); free(b);
@@ -181,7 +202,7 @@ void rleFrPoly( RLE *R, const double *xy, siz k, siz h, siz w ) {
 char* rleToString( const RLE *R ) {
   // Similar to LEB128 but using 6 bits/char and ascii chars 48-111.
   siz i, m=R->m, p=0; long x; bool more;
-  char *s=malloc(sizeof(char)*m*6);
+  char *s=(char *)malloc(sizeof(char)*m*6);
   for( i=0; i<m; i++ ) {
     x=(long) R->cnts[i]; if(i>2) x-=(long) R->cnts[i-2]; more=1;
     while( more ) {
@@ -194,7 +215,7 @@ char* rleToString( const RLE *R ) {
 
 void rleFrString( RLE *R, char *s, siz h, siz w ) {
   siz m=0, p=0, k; long x; bool more; uint *cnts;
-  while( s[m] ) m++; cnts=malloc(sizeof(uint)*m); m=0;
+  while( s[m] ) m++; cnts=(uint *)malloc(sizeof(uint)*m); m=0;
   while( s[p] ) {
     x=0; k=0; more=1;
     while( more ) {

@@ -230,7 +230,7 @@ class pascal_voc(imdb):
 
     def _get_voc_results_file_template(self):
         # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
-        filename = self._get_comp_id() + '_det_' + self._image_set + '_{:s}.txt'
+        filename = self._get_comp_id() + '_det_' + self._image_set + '_{}.txt'
         path = os.path.join(
             self._devkit_path,
             'results',
@@ -262,7 +262,7 @@ class pascal_voc(imdb):
             self._devkit_path,
             'VOC' + self._year,
             'Annotations',
-            '{:s}.xml')
+            '{}.xml')
         imagesetfile = os.path.join(
             self._devkit_path,
             'VOC' + self._year,

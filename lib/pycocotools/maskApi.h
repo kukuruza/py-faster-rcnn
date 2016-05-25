@@ -5,7 +5,11 @@
 * Licensed under the Simplified BSD License [see coco/license.txt]
 **************************************************************************/
 #pragma once
-#include <stdbool.h>
+
+// Visual Studio does not have <stdbool.h> file
+typedef int bool;
+#define true 1
+#define false 0
 
 typedef unsigned int uint;
 typedef unsigned long siz;
