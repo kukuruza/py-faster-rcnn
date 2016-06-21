@@ -62,8 +62,16 @@ if __name__ == "__main__":
     TEST_IMDB = "coco_2014_minival"
     PT_DIR = "coco"
     ITERS = args.ITERS if args.ITERS is not None else 490000
+  elif args.DATASET == 'flickrlogo32':
+    # This is a very long and slow training schedule
+    # You can probably use fewer iterations and reduce the
+    # time to the LR drop (set in the solver to 350,000 iterations).
+    TRAIN_IMDB = "flickrlogo32_val"
+    TEST_IMDB = "flickrlogo32_test"
+    PT_DIR = "flickrlogo32"
+    ITERS = args.ITERS if args.ITERS is not None else 10000
   else:
-    print 'Provide a dataset, either "pascal_voc" or "coco"'
+    print 'Provide a dataset, "pascal_voc", "flickrlogo32" or "coco"'
     sys.exit()
 
   # redirect output to the LOG file
