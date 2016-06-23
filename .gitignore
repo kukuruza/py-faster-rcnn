@@ -8,3 +8,6 @@ data/faster_rcnn_models
 *.tgz
 
 output
+
+# this is not a submodule anymore, but a soft link
+caffe-fast-rcnn
