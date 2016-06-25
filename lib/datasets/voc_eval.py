@@ -5,12 +5,13 @@
 # --------------------------------------------------------
 
 import xml.etree.ElementTree as ET
-import os
+import os, os.path as op
 import cPickle
 import numpy as np
 
 def parse_rec(filename):
     """ Parse a PASCAL VOC xml file """
+    assert op.exists(filename), '%s does not exist' % filename
     tree = ET.parse(filename)
     objects = []
     for obj in tree.findall('object'):
@@ -134,13 +135,17 @@ def voc_eval(detpath,
 
     # read dets
     detfile = detpath.format(classname)
+    assert op.exists(detfile), 'detfile %s does not exist' % detfile
     with open(detfile, 'r') as f:
         lines = f.readlines()
 
     splitlines = [x.strip().split(' ') for x in lines]
     image_ids = [x[0] for x in splitlines]
     confidence = np.array([float(x[1]) for x in splitlines])
-    BB = np.array([[float(z) for z in x[2:]] for x in splitlines])
+    if len(splitlines) > 0:
+        BB = np.array([[float(z) for z in x[2:]] for x in splitlines])
+    else:
+        BB = np.zeros([0, 4])  # if nothing detected, still need to be two-dim.
 
     # sort by confidence
     sorted_ind = np.argsort(-confidence)

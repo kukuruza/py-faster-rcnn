@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     if not os.path.isfile(caffemodel):
         raise IOError(('{:s} not found.\nDid you run ./data/script/'
-                       'fetch_faster_rcnn_models.sh?').format(caffemodel))
+                       'fetch_faster_rcnn_models.py?').format(caffemodel))
 
     if args.cpu_mode:
         caffe.set_mode_cpu()

@@ -107,7 +107,7 @@ If you find Faster R-CNN useful in your research, please consider citing:
 5. Download pre-computed Faster R-CNN detectors
     ```Shell
     cd $FRCN_ROOT
-    ./data/scripts/fetch_faster_rcnn_models.sh
+    python ./data/scripts/fetch_faster_rcnn_models.py
     ```
 
     This will populate the `$FRCN_ROOT/data` folder with `faster_rcnn_models`. See `data/README.md` for details.
@@ -167,37 +167,37 @@ Pre-trained ImageNet models can be downloaded for the three networks described i
 
 ```Shell
 cd $FRCN_ROOT
-./data/scripts/fetch_imagenet_models.sh
+python ./data/scripts/fetch_imagenet_models.py
 ```
 VGG16 comes from the [Caffe Model Zoo](https://github.com/BVLC/caffe/wiki/Model-Zoo), but is provided here for your convenience.
 ZF was trained at MSRA.
 
 ### Usage
 
-To train and test a Faster R-CNN detector using the **alternating optimization** algorithm from our NIPS 2015 paper, use `experiments/scripts/faster_rcnn_alt_opt.sh`.
+To train and test a Faster R-CNN detector using the **alternating optimization** algorithm from our NIPS 2015 paper, use `experiments/scripts/faster_rcnn_alt_opt.py`.
 Output is written underneath `$FRCN_ROOT/output`.
 
 ```Shell
 cd $FRCN_ROOT
-./experiments/scripts/faster_rcnn_alt_opt.sh [GPU_ID] [NET] [--set ...]
+python ./experiments/scripts/faster_rcnn_alt_opt.py [GPU_ID] [NET] [...]
 # GPU_ID is the GPU you want to train on
 # NET in {ZF, VGG_CNN_M_1024, VGG16} is the network arch to use
-# --set ... allows you to specify fast_rcnn.config options, e.g.
-#   --set EXP_DIR seed_rng1701 RNG_SEED 1701
+# last optional arguments allow you to specify fast_rcnn.config options, e.g.
+#   EXP_DIR seed_rng1701 RNG_SEED 1701
 ```
 
 ("alt opt" refers to the alternating optimization training algorithm described in the NIPS paper.)
 
-To train and test a Faster R-CNN detector using the **approximate joint training** method, use `experiments/scripts/faster_rcnn_end2end.sh`.
+To train and test a Faster R-CNN detector using the **approximate joint training** method, use `experiments/scripts/faster_rcnn_end2end.py`.
 Output is written underneath `$FRCN_ROOT/output`.
 
 ```Shell
 cd $FRCN_ROOT
-./experiments/scripts/faster_rcnn_end2end.sh [GPU_ID] [NET] [--set ...]
+python ./experiments/scripts/faster_rcnn_end2end.py [GPU_ID] [NET] [...]
 # GPU_ID is the GPU you want to train on
 # NET in {ZF, VGG_CNN_M_1024, VGG16} is the network arch to use
-# --set ... allows you to specify fast_rcnn.config options, e.g.
-#   --set EXP_DIR seed_rng1701 RNG_SEED 1701
+# last optional arguments allow you to specify fast_rcnn.config options, e.g.
+#   EXP_DIR seed_rng1701 RNG_SEED 1701
 ```
 
 This method trains the RPN module jointly with the Fast R-CNN network, rather than alternating between training the two. It results in faster (~ 1.5x speedup) training times and similar detection accuracy. See these [slides](https://www.dropbox.com/s/xtr4yd4i5e0vw8g/iccv15_tutorial_training_rbg.pdf?dl=0) for more details.

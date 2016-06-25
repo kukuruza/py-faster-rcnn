@@ -26,7 +26,7 @@ import multiprocessing as mp
 import cPickle
 import shutil
 
-def parse_args():
+def parse_args(args_list):
     """
     Parse input arguments
     """
@@ -50,11 +50,11 @@ def parse_args():
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
 
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 0:
         parser.print_help()
         sys.exit(1)
 
-    args = parser.parse_args()
+    args = parser.parse_args(args_list)
     return args
 
 def get_roidb(imdb_name, rpn_file=None):
@@ -200,8 +200,8 @@ def train_fast_rcnn(queue=None, imdb_name=None, init_model=None, solver=None,
     # Send Fast R-CNN model path over the multiprocessing queue
     queue.put({'model_path': fast_rcnn_model_path})
 
-if __name__ == '__main__':
-    args = parse_args()
+def main(args_list):
+    args = parse_args(args_list)
 
     print('Called with args:')
     print(args)
@@ -222,6 +222,7 @@ if __name__ == '__main__':
     # queue for communicated results between processes
     mp_queue = mp.Queue()
     # solves, iters, etc. for each training stage
+    assert args.net_name is not None
     solvers, max_iters, rpn_test_prototxt = get_solvers(args.net_name)
 
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
@@ -332,3 +333,8 @@ if __name__ == '__main__':
             fast_rcnn_stage2_out['model_path'], final_path)
     shutil.copy(fast_rcnn_stage2_out['model_path'], final_path)
     print 'Final model: {}'.format(final_path)
+
+if __name__ == '__main__':
+    '''Wrap train_net in order to call script from python as well as console.'''
+    args_list = sys.argv[1:]
+    main(args_list)
