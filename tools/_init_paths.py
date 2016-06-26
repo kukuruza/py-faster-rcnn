@@ -17,8 +17,11 @@ def add_path(path):
 this_dir = osp.dirname(__file__)
 
 # Add caffe to PYTHONPATH
-caffe_path = osp.join(this_dir, '..', 'caffe-fast-rcnn', 'python')
-add_path(caffe_path)
+try:
+    __import__('caffe')
+except ImportError:
+    raise Exception ('caffe module can not be imported. '
+	   'Add compiled python module located at `$CAFFE/python` to PYTHONPATH environmental variable')
 
 # Add lib to PYTHONPATH
 lib_path = osp.join(this_dir, '..', 'lib')
