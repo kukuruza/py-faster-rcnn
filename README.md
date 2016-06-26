@@ -99,12 +99,9 @@ Type commands into [Powershell](https://msdn.microsoft.com/en-us/powershell/mt17
 
 4. Build Caffe and pycaffe
    
-  Follow the instructions from here: https://github.com/kukuruza/win-caffe-fast-rcnn#windows-setup.
-  The `caffe.sln` project is already set up to compile `WITH_PYTHON_LAYER`. 
-
-  Make sure to build [the Python wrapper](https://github.com/kukuruza/win-caffe-fast-rcnn#python).
-
-  It is also recommended that you use [CUDNN](https://github.com/kukuruza/win-caffe-fast-rcnn#cudnn).
+  Follow the instructions from https://github.com/MSRCCS/Caffe. 
+  Make sure to compile `WITH_PYTHON_LAYER` and build `pycaffe`.
+  It is also recommended that you use CUDNN.
 
 5. Download pre-computed Faster R-CNN detectors
     ```PowerShell
