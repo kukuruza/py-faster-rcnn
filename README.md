@@ -77,7 +77,7 @@ Type commands into [Powershell](https://msdn.microsoft.com/en-us/powershell/mt17
     ```PowerShell
     git clone https://github.com/kukuruza/py-faster-rcnn
     chdir py-faster-rcnn
-    git checkout ccs
+    git checkout win
     ```
     We'll call the directory that you cloned Faster R-CNN into `FRCN_ROOT`. Note that Caffe is not a submodule any longer.
   
@@ -85,9 +85,9 @@ Type commands into [Powershell](https://msdn.microsoft.com/en-us/powershell/mt17
    (Alternatively you can clone `caffe-fast-rcnn` into a different location and create a symbolic link.)
     ```PowerShell
     chdir $FRCN_ROOT\..
-    git clone https://github.com/kukuruza/Caffe-CCS 
-    chdir Caffe-CCS 
-    git checkout ccs-faster-rcnn
+    git clone https://github.com/kukuruza/caffe
+    chdir caffe
+    git checkout win-faster-rcnn
     ```
 
 3. Build the Cython modules
@@ -99,7 +99,7 @@ Type commands into [Powershell](https://msdn.microsoft.com/en-us/powershell/mt17
 
 4. Build Caffe and pycaffe
    
-  Follow the instructions from https://github.com/MSRCCS/Caffe. 
+  Follow the instructions from https://github.com/Microsoft/caffe. 
   Make sure to compile `WITH_PYTHON_LAYER` and build `pycaffe`.
   It is also recommended that you use CUDNN.
 
