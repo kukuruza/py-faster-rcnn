@@ -129,7 +129,7 @@ class flickrlogo32(imdb):
             print '{} ss roidb loaded from {}'.format(self.name, cache_file)
             return roidb
 
-        if int(self._year) == 2007 or self._image_set != 'test':
+        if self._image_set != 'test':
             gt_roidb = self.gt_roidb()
             ss_roidb = self._load_selective_search_roidb(gt_roidb)
             roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
@@ -142,7 +142,7 @@ class flickrlogo32(imdb):
         return roidb
 
     def rpn_roidb(self):
-        if int(self._year) == 2007 or self._image_set != 'test':
+        if self._image_set != 'test':
             gt_roidb = self.gt_roidb()
             rpn_roidb = self._load_rpn_roidb(gt_roidb)
             roidb = imdb.merge_roidbs(gt_roidb, rpn_roidb)
@@ -243,7 +243,7 @@ class flickrlogo32(imdb):
         path = os.path.join(
             self._devkit_path,
             'results',
-            'VOC' + self._year,
+            'flickrlogo32',
             'Main',
             filename)
         return path
@@ -269,12 +269,12 @@ class flickrlogo32(imdb):
     def _do_python_eval(self, output_dir = 'output'):
         annopath = os.path.join(
             self._devkit_path,
-            'VOC' + self._year,
+            'flickrlogo32',
             'Annotations',
             '{}.xml')
         imagesetfile = os.path.join(
             self._devkit_path,
-            'VOC' + self._year,
+            'flickrlogo32',
             'ImageSets',
             'Main',
             self._image_set + '.txt')
