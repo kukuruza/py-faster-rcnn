@@ -179,8 +179,8 @@ Output is written underneath `$FRCN_ROOT/output`.
 
 ```Shell
 cd $FRCN_ROOT
-python ./experiments/scripts/faster_rcnn_alt_opt.py [GPU_ID] [NET] [...]
-# GPU_ID is the GPU you want to train on
+python ./experiments/scripts/faster_rcnn_alt_opt.py [--GPU gpu_id] [--NET net] [...]
+# GPU is the GPU id you want to train on
 # NET in {ZF, VGG_CNN_M_1024, VGG16} is the network arch to use
 # last optional arguments allow you to specify fast_rcnn.config options, e.g.
 #   EXP_DIR seed_rng1701 RNG_SEED 1701
@@ -193,8 +193,8 @@ Output is written underneath `$FRCN_ROOT/output`.
 
 ```Shell
 cd $FRCN_ROOT
-python ./experiments/scripts/faster_rcnn_end2end.py [GPU_ID] [NET] [...]
-# GPU_ID is the GPU you want to train on
+python ./experiments/scripts/faster_rcnn_end2end.py [--GPU gpu_id] [--NET net] [...]
+# GPU is the GPU id you want to train on
 # NET in {ZF, VGG_CNN_M_1024, VGG16} is the network arch to use
 # last optional arguments allow you to specify fast_rcnn.config options, e.g.
 #   EXP_DIR seed_rng1701 RNG_SEED 1701
