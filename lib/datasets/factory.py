@@ -32,7 +32,7 @@ for year in ['2015']:
         name = 'coco_{}_{}'.format(year, split)
         __sets[name] = (lambda split=split, year=year: coco(split, year))
 
-for split in ['train', 'test', 'val']:
+for split in ['train', 'test', 'test_try', 'val']:
     name = 'flickrlogo32_{}'.format(split)
     __sets[name] = (lambda split=split: flickrlogo32(split))
 

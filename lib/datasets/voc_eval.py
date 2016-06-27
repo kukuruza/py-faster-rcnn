@@ -17,9 +17,9 @@ def parse_rec(filename):
     for obj in tree.findall('object'):
         obj_struct = {}
         obj_struct['name'] = obj.find('name').text
-        obj_struct['pose'] = obj.find('pose').text
-        obj_struct['truncated'] = int(obj.find('truncated').text)
-        obj_struct['difficult'] = int(obj.find('difficult').text)
+        obj_struct['pose'] = obj.find('pose').text if obj.find('pose') else None
+        obj_struct['truncated'] = int(obj.find('truncated').text) if obj.find('truncated') else False
+        obj_struct['difficult'] = int(obj.find('difficult').text) if obj.find('difficult') else False
         bbox = obj.find('bndbox')
         obj_struct['bbox'] = [int(bbox.find('xmin').text),
                               int(bbox.find('ymin').text),
@@ -119,6 +119,8 @@ def voc_eval(detpath,
         # load
         with open(cachefile, 'r') as f:
             recs = cPickle.load(f)
+
+    print 'classname: %s' % classname
 
     # extract gt objects for this class
     class_recs = {}
