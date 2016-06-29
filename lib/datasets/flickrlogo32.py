@@ -250,7 +250,7 @@ class flickrlogo32(imdb):
 
     def _write_voc_results_file(self, all_boxes):
         for cls_ind, cls in enumerate(self.classes):
-            if cls == '__background__':
+            if cls == 'no-logo':
                 continue
             print 'Writing {} VOC results file'.format(cls)
             filename = self._get_voc_results_file_template().format(cls)
@@ -286,7 +286,7 @@ class flickrlogo32(imdb):
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
         for i, cls in enumerate(self._classes):
-            if cls == '__background__':
+            if cls == 'no-logo':
                 continue
             filename = self._get_voc_results_file_template().format(cls)
             rec, prec, ap = voc_eval(
@@ -333,7 +333,7 @@ class flickrlogo32(imdb):
             self._do_matlab_eval(output_dir)
         if self.config['cleanup']:
             for cls in self._classes:
-                if cls == '__background__':
+                if cls == 'no-logo':
                     continue
                 filename = self._get_voc_results_file_template().format(cls)
                 os.remove(filename)
