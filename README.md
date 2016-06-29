@@ -143,11 +143,11 @@ The demo performs detection using a VGG16 network trained for detection on PASCA
   	# ... and several other directories ...
   	```
 
-4. Create symlinks for the PASCAL VOC dataset
+4. Create symlinks for the PASCAL VOC dataset (need to run PowerShell as administrator)
 
 	```PowerShell
 	chdir $FRCN_ROOT\data
-	cmd /c mklink -s $VOCdevkit VOCdevkit2007
+	cmd /c mklink -d $VOCdevkit VOCdevkit2007
 	```
     Using symlinks is a good idea because you will likely want to share the same PASCAL dataset installation between multiple projects.
 5. [Optional] follow similar steps to get PASCAL VOC 2010 and 2012
