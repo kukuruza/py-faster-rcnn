@@ -35,6 +35,7 @@ import train_net, test_net
 if __name__ == "__main__":
 
   parser = argparse.ArgumentParser()
+  parser.add_argument('--SOLVER_NAME', default='solver.prototxt', help='name of solver file')
   parser.add_argument('--GPU', default='0', type=str, help='GPU id, or -1 for CPU')
   parser.add_argument('--NET', required=True, help='CNN archiutecture')
   parser.add_argument('--DATASET', required=True, help='either "pascal_voc" or "coco"')
@@ -74,6 +75,10 @@ if __name__ == "__main__":
     print 'Provide a dataset, "pascal_voc", "flickrlogo32" or "coco"'
     sys.exit()
 
+  splits = op.splitext(args.SOLVER_NAME)[0].split('-')
+  suffix = splits[-1] if len(splits) > 1 else ''
+  print 'suffix: %s' % suffix
+
   # redirect output to the LOG file
   if not args.LOG_TO_SCREEN:
     DATE = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -86,10 +91,12 @@ if __name__ == "__main__":
   start = time.time()
   train_net.main([
     '--gpu', args.GPU, 
-    '--solver', at_fcnn('models/%s/%s/faster_rcnn_end2end/solver.prototxt' % (PT_DIR, args.NET)),
+    '--solver', at_fcnn('models/%s/%s/faster_rcnn_end2end/%s' % 
+                        (PT_DIR, args.NET, args.SOLVER_NAME)),
     '--weights', at_fcnn('data/imagenet_models/%s.v2.caffemodel' % args.NET),
     '--imdb', TRAIN_IMDB,
     '--iters', str(ITERS),
+    '--suffix', suffix,
     '--cfg', at_fcnn('experiments/cfgs/faster_rcnn_end2end.yml')] +
     ([] if not args.EXTRA_ARGS else ['--set'] + args.EXTRA_ARGS))
   print 'tools/train_net.py finished in %s seconds' % (time.time() - start)
