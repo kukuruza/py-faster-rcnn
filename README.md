@@ -86,7 +86,8 @@ Type commands into [Powershell](https://msdn.microsoft.com/en-us/powershell/mt17
     ```PowerShell
     chdir $FRCN_ROOT\..
     git clone https://github.com/kukuruza/Caffe-CCS 
-    chdir Caffe-CCS 
+    mv Caffe-CCS caffe-fast-rcnn
+    chdir caffe-fast-rcnn
     git checkout ccs-faster-rcnn
     ```
 
