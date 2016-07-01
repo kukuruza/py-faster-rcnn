@@ -562,25 +562,16 @@ layer {
     weight_filler { type: "gaussian" std: 0.001 }
     bias_filler { type: "constant" }
   }
+  loss_weight: 0.1
 }
+
 #layer {
-#  name: "st/theta_2/final"
-#  type: "PowerFile"
-#  bottom: "theta/pre"
-#  top: "theta"
-#  power_file_param {
-#    shift_file: "models/googlenet-bn-cub-st/crop_init_2.txt"
-#  }
+#  name: "theta_loss_layer"
+#  type: "EuclideanLoss"
+#  bottom: "theta"
+#  top: "theta_loss"
+#  loss_weight: 0.001
 #}
-
-
-layer {
-  name: "theta_loss"
-  type: "EuclideanLoss"
-  bottom: "theta"
-  top: "theta_loss"
-  loss_weight: 1
-}
 
 layer {
   name: "st_layer"
