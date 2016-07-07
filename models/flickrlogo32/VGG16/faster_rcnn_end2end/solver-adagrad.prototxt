@@ -1,0 +1,20 @@
+# The train/test net protocol buffer definition
+train_net: "models/flickrlogo32/VGG16/faster_rcnn_end2end/train.prototxt"
+# All parameters are from the cited paper above
+base_lr: 0.001
+lr_policy: "fixed"
+# Display every 100 iterations
+display: 100
+# The maximum number of iterations
+max_iter: 50000
+
+# We disable standard caffe solver snapshotting and implement our own snapshot
+# function
+snapshot: 0
+# We still use the snapshot prefix, though
+snapshot_prefix: "vgg16_faster_rcnn"
+iter_size: 2
+
+# solver mode: CPU or GPU
+type: "AdaGrad"
+solver_mode: GPU

@@ -31,6 +31,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn1_1"
+  type: "BatchNorm"
+  bottom: "conv1_1"
+  top: "conv1_1"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu1_1"
   type: "ReLU"
@@ -56,6 +73,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn1_2"
+  type: "BatchNorm"
+  bottom: "conv1_2"
+  top: "conv1_2"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu1_2"
   type: "ReLU"
@@ -92,6 +126,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn2_1"
+  type: "BatchNorm"
+  bottom: "conv2_1"
+  top: "conv2_1"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu2_1"
   type: "ReLU"
@@ -117,6 +168,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn2_2"
+  type: "BatchNorm"
+  bottom: "conv2_2"
+  top: "conv2_2"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu2_2"
   type: "ReLU"
@@ -151,6 +219,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn3_1"
+  type: "BatchNorm"
+  bottom: "conv3_1"
+  top: "conv3_1"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu3_1"
   type: "ReLU"
@@ -174,6 +259,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn3_2"
+  type: "BatchNorm"
+  bottom: "conv3_2"
+  top: "conv3_2"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu3_2"
   type: "ReLU"
@@ -197,6 +299,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn3_3"
+  type: "BatchNorm"
+  bottom: "conv3_3"
+  top: "conv3_3"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu3_3"
   type: "ReLU"
@@ -231,6 +350,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn4_1"
+  type: "BatchNorm"
+  bottom: "conv4_1"
+  top: "conv4_1"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu4_1"
   type: "ReLU"
@@ -254,6 +390,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn4_2"
+  type: "BatchNorm"
+  bottom: "conv4_2"
+  top: "conv4_2"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu4_2"
   type: "ReLU"
@@ -277,6 +430,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn4_3"
+  type: "BatchNorm"
+  bottom: "conv4_3"
+  top: "conv4_3"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu4_3"
   type: "ReLU"
@@ -311,6 +481,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn5_1"
+  type: "BatchNorm"
+  bottom: "conv5_1"
+  top: "conv5_1"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu5_1"
   type: "ReLU"
@@ -334,6 +521,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn5_2"
+  type: "BatchNorm"
+  bottom: "conv5_2"
+  top: "conv5_2"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu5_2"
   type: "ReLU"
@@ -357,6 +561,23 @@ layer {
     kernel_size: 3
   }
 }
+
+layer {
+  name: "bn5_3"
+  type: "BatchNorm"
+  bottom: "conv5_3"
+  top: "conv5_3"
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+  param {
+    lr_mult: 0
+  }
+}
+
 layer {
   name: "relu5_3"
   type: "ReLU"
@@ -540,71 +761,15 @@ layer {
   bottom: "rois"
   top: "pool5"
   roi_pooling_param {
-    pooled_w: 14
-    pooled_h: 14
+    pooled_w: 7
+    pooled_h: 7
     spatial_scale: 0.0625 # 1/16
   }
 }
-
-layer {
-  name: "loc_reg"
-  type: "InnerProduct"
-  bottom: "pool5"
-  top: "theta"
-  param {
-    lr_mult: 0.0001
-  }
-  param {
-    lr_mult: 0.0001
-  }
-  inner_product_param {
-    num_output: 2
-    weight_filler { type: "gaussian" std: 0.001 }
-    bias_filler { type: "constant" }
-  }
-}
-#layer {
-#  name: "st/theta_2/final"
-#  type: "PowerFile"
-#  bottom: "theta/pre"
-#  top: "theta"
-#  power_file_param {
-#    shift_file: "models/googlenet-bn-cub-st/crop_init_2.txt"
-#  }
-#}
-
-layer {
-  name: "theta_loss"
-  type: "EuclideanLoss"
-  bottom: "theta"
-  top: "theta_loss"
-  loss_weight: 1
-}
-
-layer {
-  name: "st_layer"
-  type: "SpatialTransformer"
-  bottom: "pool5"
-  bottom: "theta"
-  top: "pool5-st"
-  st_param {
-    output_H: 7
-    output_W: 7
-    theta_1_2: 0
-    theta_2_1: 0
-    # scale (theta_1_1 and theta_2_2 is fixed to 1)
-#    theta_1_1: 1
-#    theta_2_2: 1
-    # translation (theta_1_3 and theta_2_3 is disabled)
-    theta_1_3: 0
-    theta_2_3: 0
-  }
-}
-
 layer {
   name: "fc6"
   type: "InnerProduct"
-  bottom: "pool5-st"
+  bottom: "pool5"
   top: "fc6"
   param {
     lr_mult: 1
