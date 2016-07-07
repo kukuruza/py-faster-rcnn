@@ -75,8 +75,8 @@ class ProposalTargetLayer(caffe.Layer):
             print 'num bg avg: {}'.format(self._bg_num / self._count)
             print 'ratio: {:.3f}'.format(float(self._fg_num) / float(self._bg_num))
 
-        print "ProposalTargetLayer: rois blob dims: %s, rois:" % str(rois.shape)
-        print np.transpose(np.vstack((rois[:,1], rois[:,2], rois[:,3]-rois[:,1], rois[:,4]-rois[:,2])))
+            print "ProposalTargetLayer: rois blob dims: %s, rois:" % str(rois.shape)
+            print np.transpose(np.vstack((rois[:,1], rois[:,2], rois[:,3]-rois[:,1], rois[:,4]-rois[:,2])))
 
         # sampled rois
         top[0].reshape(*rois.shape)
