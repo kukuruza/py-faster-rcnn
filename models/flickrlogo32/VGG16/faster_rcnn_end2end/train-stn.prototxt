@@ -417,6 +417,13 @@ layer {
   }
 }
 
+#layer {
+#  name: "rpn_bbox_pred_loss"
+#  type: "EuclideanLoss"
+#  bottom: "rpn_bbox_pred"
+#  loss_weight: 0
+#}
+
 layer {
    bottom: "rpn_cls_score"
    top: "rpn_cls_score_reshape"
@@ -540,8 +547,8 @@ layer {
   bottom: "rois"
   top: "pool5"
   roi_pooling_param {
-    pooled_w: 14
-    pooled_h: 14
+    pooled_w: 28
+    pooled_h: 28
     spatial_scale: 0.0625 # 1/16
   }
 }
@@ -552,17 +559,17 @@ layer {
   bottom: "pool5"
   top: "theta"
   param {
-    lr_mult: 0.0001
+    lr_mult: 0.00000002
   }
   param {
-    lr_mult: 0.0001
+    lr_mult: 0.00000002
   }
   inner_product_param {
     num_output: 2
-    weight_filler { type: "gaussian" std: 0.001 }
-    bias_filler { type: "constant" }
+    weight_filler { type: "gaussian" std: 0.000002 }
+#    weight_filler { type: "constant" value: 0 }
+    bias_filler { type: "constant" value: 1 }
   }
-  loss_weight: 0.1
 }
 
 #layer {
@@ -570,7 +577,7 @@ layer {
 #  type: "EuclideanLoss"
 #  bottom: "theta"
 #  top: "theta_loss"
-#  loss_weight: 0.001
+#  loss_weight: 0
 #}
 
 layer {
@@ -579,6 +586,7 @@ layer {
   bottom: "pool5"
   bottom: "theta"
   top: "pool5-st"
+  top: "full-theta"
   st_param {
     output_H: 7
     output_W: 7
@@ -590,6 +598,41 @@ layer {
     # translation (theta_1_3 and theta_2_3 is disabled)
     theta_1_3: 0
     theta_2_3: 0
+  }
+}
+
+layer {
+  name: "theta_st_loss"
+  type: "STLoss"
+  bottom: "full-theta"
+  top: "theta_st_loss"
+  st_loss_param {
+    output_H: 7
+    output_W: 7
+  }
+  loss_weight: 100
+}
+
+#layer {
+#  name: "change_by_st"
+#  type: "EuclideanLoss"
+#  bottom: "pool5"
+#  bottom: "pool5-st"
+#  top: "pooled_st_loss"
+#  loss_weight: 0
+#}
+
+layer {
+  name: "highest_pool_diff"
+  type: 'Python'
+  bottom: 'pool5'
+  bottom: 'pool5-st'
+  bottom: 'full-theta'
+  bottom: 'rois'
+  python_param {
+    module: 'biggest_firing_layer'
+    layer: 'BiggestFiringLayer'
+    param_str: "'threshold': 10"
   }
 }
 

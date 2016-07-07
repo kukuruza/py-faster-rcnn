@@ -75,6 +75,9 @@ class ProposalTargetLayer(caffe.Layer):
             print 'num bg avg: {}'.format(self._bg_num / self._count)
             print 'ratio: {:.3f}'.format(float(self._fg_num) / float(self._bg_num))
 
+        print "ProposalTargetLayer: rois blob dims: %s, rois:" % str(rois.shape)
+        print np.transpose(np.vstack((rois[:,1], rois[:,2], rois[:,3]-rois[:,1], rois[:,4]-rois[:,2])))
+
         # sampled rois
         top[0].reshape(*rois.shape)
         top[0].data[...] = rois
@@ -136,6 +139,7 @@ def _compute_targets(ex_rois, gt_rois, labels):
     assert ex_rois.shape[1] == 4
     assert gt_rois.shape[1] == 4
 
+#    print ex_rois[0,:], gt_rois[0,:]
     targets = bbox_transform(ex_rois, gt_rois)
     if cfg.TRAIN.BBOX_NORMALIZE_TARGETS_PRECOMPUTED:
         # Optionally normalize targets by a precomputed mean and stdev
