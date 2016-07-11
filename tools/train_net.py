@@ -47,9 +47,6 @@ def parse_args(args_list):
     parser.add_argument('--rand', dest='randomize',
                         help='randomize (do not use a fixed seed)',
                         action='store_true')
-    parser.add_argument('--suffix', dest='suffix',
-                        help='most-nested folder will be created for snapshots', 
-                        default='', type=str)
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
@@ -113,7 +110,6 @@ def main(args_list):
     print '{:d} roidb entries'.format(len(roidb))
 
     output_dir = get_output_dir(imdb)
-    if args.suffix: output_dir = op.join(output_dir, args.suffix) 
     print 'Output will be saved to `{:s}`'.format(output_dir)
 
     train_net(args.solver, roidb, output_dir,

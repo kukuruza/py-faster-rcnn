@@ -96,7 +96,6 @@ if __name__ == "__main__":
     '--weights', at_fcnn('data/imagenet_models/%s.v2.caffemodel' % args.NET),
     '--imdb', TRAIN_IMDB,
     '--iters', str(ITERS),
-    '--suffix', suffix,
     '--cfg', at_fcnn('experiments/cfgs/faster_rcnn_end2end.yml')] +
     ([] if not args.EXTRA_ARGS else ['--set'] + args.EXTRA_ARGS))
   print 'tools/train_net.py finished in %s seconds' % (time.time() - start)
