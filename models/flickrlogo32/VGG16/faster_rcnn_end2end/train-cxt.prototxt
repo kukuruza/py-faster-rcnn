@@ -549,13 +549,6 @@ layer {
 }
 
 layer {
-  name: "dummy_loss"
-  type: "EuclideanLoss"
-  bottom: "pool5_whole"
-  loss_weight: 0
-}
-
-layer {
   name: "roi_pool5"
   type: "ROIPooling"
   bottom: "conv5_3"
