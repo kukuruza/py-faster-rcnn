@@ -12,3 +12,6 @@ output
 
 # this is not a submodule anymore, but a soft link
 caffe-fast-rcnn
+
+# windows extra libraries (where do they come from???)
+NugetPackages
