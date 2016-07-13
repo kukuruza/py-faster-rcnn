@@ -34,7 +34,7 @@ class ModifyRoisLayer(caffe.Layer):
         width  = im_info[0]
         height = im_info[1]
 
-        proposals = bottom[1].data
+        proposals = bottom[1].data.copy()
         # (at the moment only one modification is possible -- increase each roi)
         proposals = proposals[:,1:]  # remove the batch_id col
         

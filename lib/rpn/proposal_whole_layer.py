@@ -43,7 +43,7 @@ class ProposalWholeLayer(caffe.Layer):
         # Output rois blob
         # Our RPN implementation only supports a single input image, so all
         # batch inds are 0
-        blob = np.repeat (np.asarray([[0,0,0,width,height+1000]], np.float32), 
+        blob = np.repeat (np.asarray([[0,0,0,width,height]], np.float32), 
             repeats=number, axis=0)
 
         top[0].reshape(*(blob.shape))
