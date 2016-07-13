@@ -52,12 +52,13 @@ def expandRoiFloat (roi, (imwidth, imheight), perc):
     # check that now averything is within borders (bbox is not too big)
     roi = [round(x) for x in roi]
     err_str = 'old: %s, new: %s, imwidth: %d, imheight: %d' % (str(roi0), str(roi), imwidth, imheight)
+    return roi
 
 
 
 if __name__ == "__main__":
-    roi = np.asarray([34.08891296, 0., 333.91125488, 299.14559937], dtype=np.float32)
+    roi = np.asarray([ 139.0625,   204.6875,   412.5,      350.78125], dtype=np.float32)
     imwidth, imheight = 600, 800
     perc = 1.0
-    expandRoiFloat (roi, (imwidth, imheight), perc)
-
+    roi = expandRoiFloat (roi, (imwidth, imheight), perc)
+    print roi
