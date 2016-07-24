@@ -38,9 +38,11 @@ if __name__ == "__main__":
   parser.add_argument('--SOLVER_NAME', default='solver.prototxt', help='name of solver file')
   parser.add_argument('--GPU', default='0', type=str, help='GPU id, or -1 for CPU')
   parser.add_argument('--NET', required=True, help='trained CNN')
-  parser.add_argument('--DATASET', required=True, help='either "pascal_voc" or "coco"')
+  parser.add_argument('--MYCLASS', default='ups', help='only for flickrlogo1') 
+  parser.add_argument('--DATASET', required=True, 
+                      help='"pascal_voc", "coco", "flickrlogo32", or "flickrlogo1"')
   parser.add_argument('--ITERS',
-  	                  help='number of iter., default for pascal_voc = 70K, for coco = 490K')
+  	              help='number of iter., default for pascal_voc = 70K, for coco = 490K')
   parser.add_argument('--LOG_TO_SCREEN', action='store_true', 
                       help='Send stdout to screen instead of the log file for debugging')
   parser.add_argument('EXTRA_ARGS', nargs='*',
@@ -67,6 +69,11 @@ if __name__ == "__main__":
     TRAIN_IMDB = "flickrlogo32_val"
     TEST_IMDB = "flickrlogo32_test"
     PT_DIR = "flickrlogo32"
+    ITERS = args.ITERS if args.ITERS is not None else 10000
+  elif args.DATASET == 'flickrlogo1':
+    TRAIN_IMDB = "flickrlogo1_%s_val" % args.MYCLASS
+    TEST_IMDB = "flickrlogo1_%s_test" % args.MYCLASS
+    PT_DIR = "flickrlogo1"
     ITERS = args.ITERS if args.ITERS is not None else 10000
   else:
     print 'Provide a dataset, "pascal_voc", "coco", or "flickrlogo32"'
