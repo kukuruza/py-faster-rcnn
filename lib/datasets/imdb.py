@@ -52,6 +52,7 @@ class imdb(object):
         self._roidb_handler = val
 
     def set_proposal_method(self, method):
+        print 'imdb.set_proposal_method: %s' % method
         method = eval('self.' + method + '_roidb')
         self.roidb_handler = method
 
@@ -158,6 +159,7 @@ class imdb(object):
             valid_gt_inds = np.where((gt_areas >= area_range[0]) &
                                      (gt_areas <= area_range[1]))[0]
             gt_boxes = gt_boxes[valid_gt_inds, :]
+            if valid_gt_inds.size == 0: continue # in flickrlogo most images are background
             num_pos += len(valid_gt_inds)
 
             if candidate_boxes is None:

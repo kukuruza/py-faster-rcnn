@@ -35,8 +35,9 @@ import train_net, test_net
 if __name__ == "__main__":
 
   parser = argparse.ArgumentParser()
+  parser.add_argument('--SOLVER_NAME', default='solver.prototxt', help='name of solver file')
   parser.add_argument('--GPU', default='0', type=str, help='GPU id, or -1 for CPU')
-  parser.add_argument('--NET', required=True, help='CNN archiutecture')
+  parser.add_argument('--NET', required=True, help='trained CNN')
   parser.add_argument('--DATASET', required=True, help='either "pascal_voc" or "coco"')
   parser.add_argument('--ITERS',
   	                  help='number of iter., default for pascal_voc = 70K, for coco = 490K')
@@ -62,8 +63,13 @@ if __name__ == "__main__":
     TEST_IMDB = "coco_2014_minival"
     PT_DIR = "coco"
     ITERS = args.ITERS if args.ITERS is not None else 280000
+  elif args.DATASET == 'flickrlogo32':
+    TRAIN_IMDB = "flickrlogo32_val"
+    TEST_IMDB = "flickrlogo32_test"
+    PT_DIR = "flickrlogo32"
+    ITERS = args.ITERS if args.ITERS is not None else 10000
   else:
-    print 'Provide a dataset, either "pascal_voc" or "coco"'
+    print 'Provide a dataset, "pascal_voc", "coco", or "flickrlogo32"'
     sys.exit()
 
   # redirect output to the LOG file
@@ -78,7 +84,8 @@ if __name__ == "__main__":
   start = time.time()
   train_net.main([
     '--gpu', args.GPU, 
-    '--solver', at_fcnn('models/%s/%s/fast_rcnn/solver.prototxt' % (PT_DIR, args.NET)),
+    '--solver', at_fcnn('models/%s/%s/fast_rcnn/%s' % 
+                        (PT_DIR, args.NET, args.SOLVER_NAME)),
     '--weights', at_fcnn('data/imagenet_models/%s.v2.caffemodel' % args.NET),
     '--imdb', TRAIN_IMDB,
     '--iters', str(ITERS),

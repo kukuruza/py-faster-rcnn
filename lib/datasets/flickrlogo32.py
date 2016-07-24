@@ -129,12 +129,10 @@ class flickrlogo32(imdb):
             print '{} ss roidb loaded from {}'.format(self.name, cache_file)
             return roidb
 
-        if self._image_set != 'test':
-            gt_roidb = self.gt_roidb()
-            ss_roidb = self._load_selective_search_roidb(gt_roidb)
-            roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
-        else:
-            roidb = self._load_selective_search_roidb(None)
+        gt_roidb = self.gt_roidb()
+        ss_roidb = self._load_selective_search_roidb(gt_roidb)
+        roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
+        
         with open(cache_file, 'wb') as fid:
             cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
         print 'wrote ss roidb to {}'.format(cache_file)
