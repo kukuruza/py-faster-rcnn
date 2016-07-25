@@ -87,13 +87,14 @@ def im_proposals(net, im):
     blobs['data'], blobs['im_info'] = _get_image_blob(im)
     net.blobs['data'].reshape(*(blobs['data'].shape))
     net.blobs['im_info'].reshape(*(blobs['im_info'].shape))
+    assert cfg.TEST.HAS_RPN
     blobs_out = net.forward(
             data=blobs['data'].astype(np.float32, copy=False),
             im_info=blobs['im_info'].astype(np.float32, copy=False))
 
     scale = blobs['im_info'][0, 2]
     boxes = blobs_out['rois'][:, 1:].copy() / scale
-    scores = blobs_out['scores'].copy()
+    scores = None # blobs_out['scores'].copy()
     return boxes, scores
 
 def imdb_proposals(net, imdb):
@@ -109,7 +110,7 @@ def imdb_proposals(net, imdb):
         print 'im_proposals: {:d}/{:d} {:.3f}s' \
               .format(i + 1, imdb.num_images, _t.average_time)
         if 0:
-            dets = np.hstack((imdb_boxes[i], scores))
+            dets = imdb_boxes[i] # np.hstack((imdb_boxes[i], scores))
             # from IPython import embed; embed()
             _vis_proposals(im, dets[:3, :], thresh=0.9)
             plt.show()

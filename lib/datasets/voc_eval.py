@@ -29,12 +29,17 @@ def parse_rec(filename):
 
     return objects
 
-def voc_ap(rec, prec, use_07_metric=False):
+def voc_ap(rec, prec, use_07_metric=False, th=0.2):
     """ ap = voc_ap(rec, prec, [use_07_metric])
     Compute VOC AP given precision and recall.
     If use_07_metric is true, uses the
     VOC 07 11 point method (default:False).
     """
+    if np.sum(rec >= th) == 0:
+        prec_at_t = 0
+    else:
+        prec_at_t = np.max(prec[rec >= th])
+
     if use_07_metric:
         # 11 point metric
         ap = 0.
@@ -56,11 +61,14 @@ def voc_ap(rec, prec, use_07_metric=False):
 
         # to calculate area under PR curve, look for points
         # where X axis (recall) changes value
+
+        #print np.vstack((mrec, mpre))
+
         i = np.where(mrec[1:] != mrec[:-1])[0]
 
         # and sum (\Delta recall) * prec
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
-    return ap
+    return ap, prec_at_t
 
 def voc_eval(detpath,
              annopath,
@@ -119,8 +127,6 @@ def voc_eval(detpath,
         # load
         with open(cachefile, 'r') as f:
             recs = cPickle.load(f)
-
-    print 'classname: %s' % classname
 
     # extract gt objects for this class
     class_recs = {}
@@ -202,6 +208,6 @@ def voc_eval(detpath,
     # avoid divide by zero in case the first detection matches a difficult
     # ground truth
     prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
-    ap = voc_ap(rec, prec, use_07_metric)
+    ap, prec_at_t = voc_ap(rec, prec, use_07_metric, th=0.4)
 
-    return rec, prec, ap
+    return rec, prec, ap, prec_at_t
