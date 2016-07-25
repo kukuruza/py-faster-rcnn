@@ -472,6 +472,95 @@ layer {
   }
 }
 
+#========= WHOLE IMAGE CONV ============
+
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "conv5_3"
+  top: "pool5"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+layer {
+  name: "conv6_1"
+  type: "Convolution"
+  bottom: "pool5"
+  top: "conv6_1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler { type: "gaussian" std: 0.01 }
+    bias_filler { type: "constant" value: 0 }
+  }
+}
+layer {
+  name: "relu6_1"
+  type: "ReLU"
+  bottom: "conv6_1"
+  top: "conv6_1"
+}
+layer {
+  name: "conv6_2"
+  type: "Convolution"
+  bottom: "conv6_1"
+  top: "conv6_2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler { type: "gaussian" std: 0.01 }
+    bias_filler { type: "constant" value: 0 }
+  }
+}
+layer {
+  name: "relu6_2"
+  type: "ReLU"
+  bottom: "conv6_2"
+  top: "conv6_2"
+}
+layer {
+  name: "conv6_3"
+  type: "Convolution"
+  bottom: "conv6_2"
+  top: "conv6_3"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler { type: "gaussian" std: 0.01 }
+    bias_filler { type: "constant" value: 0 }
+  }
+}
+layer {
+  name: "relu6_3"
+  type: "ReLU"
+  bottom: "conv6_3"
+  top: "conv6_3"
+}
+
 #========= RCNN ============
 
 # get dummy proposals, each covers the whole image
@@ -491,13 +580,13 @@ layer {
 layer {
   name: "roi_pool5_whole"
   type: "ROIPooling"
-  bottom: "conv5_3"
+  bottom: "conv6_3"
   bottom: "rois_whole"
-  top: "pool5_whole"
+  top: "pool6_whole"
   roi_pooling_param {
     pooled_w: 7
     pooled_h: 7
-    spatial_scale: 0.0625 # 1/16
+    spatial_scale: 0.03125 # 1/32
   }
 }
 
@@ -515,19 +604,19 @@ layer {
 }
 
 layer {
-  name: "concat_pool5"
+  name: "concat_pool"
   type: "Concat"
   bottom: "pool5_rois"
-  bottom: "pool5_whole"
-  top: "pool5"
+  bottom: "pool6_whole"
+  top: "pool_concat"
   # by default, concatenates on channel parameter
 }
 
 layer {
   name: "conv6_to_adjust_dims"
   type: "Convolution"
-  bottom: "pool5"
-  top: "pool5_512"
+  bottom: "pool_concat"
+  top: "pool_512"
   param {
     lr_mult: 1
     decay_mult: 1
@@ -553,15 +642,13 @@ layer {
 layer {
   name: "fc6"
   type: "InnerProduct"
-  bottom: "pool5_512"
+  bottom: "pool_512"
   top: "fc6"
   param {
     lr_mult: 1
-    decay_mult: 1
   }
   param {
     lr_mult: 2
-    decay_mult: 0
   }
   inner_product_param {
     num_output: 4096
