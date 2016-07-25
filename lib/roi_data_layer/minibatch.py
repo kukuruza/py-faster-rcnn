@@ -62,8 +62,9 @@ def get_minibatch(roidb, num_classes):
 
             # Add to labels, bbox targets, and bbox loss blobs
             labels_blob = np.hstack((labels_blob, labels))
-            bbox_targets_blob = np.vstack((bbox_targets_blob, bbox_targets))
-            bbox_inside_blob = np.vstack((bbox_inside_blob, bbox_inside_weights))
+            if cfg.TRAIN.BBOX_REG:
+                bbox_targets_blob = np.vstack((bbox_targets_blob, bbox_targets))
+                bbox_inside_blob = np.vstack((bbox_inside_blob, bbox_inside_weights))
             # all_overlaps = np.hstack((all_overlaps, overlaps))
 
         # For debug visualizations
@@ -121,8 +122,11 @@ def _sample_rois(roidb, fg_rois_per_image, rois_per_image, num_classes):
     overlaps = overlaps[keep_inds]
     rois = rois[keep_inds]
 
-    bbox_targets, bbox_inside_weights = _get_bbox_regression_labels(
-            roidb['bbox_targets'][keep_inds, :], num_classes)
+    if cfg.TRAIN.BBOX_REG:
+        bbox_targets, bbox_inside_weights = _get_bbox_regression_labels(
+                roidb['bbox_targets'][keep_inds, :], num_classes)
+    else:
+        bbox_targets = bbox_inside_weights = None
 
     return labels, overlaps, rois, bbox_targets, bbox_inside_weights
 
