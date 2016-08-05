@@ -10,19 +10,23 @@ import cPickle
 import subprocess
 import uuid
 from voc_eval import voc_eval
+from datasets.flickrlogo1 import binclasses
 from fast_rcnn.config import cfg
 
-binclasses = ('milka', 'ups')
+''' This class differs from flickrlogo1 in that it has its own imdb and selsearch 
+    The difference in code is that all remaining instances of flicklogo32 
+    are replaced by flicklogoBin'''
 
-class flickrlogo1(imdb):
+
+class flickrlogoBin(imdb):
     ''' Binary classifier for target class myclass '''
     def __init__(self, image_set, myclass, devkit_path=None):
-        imdb.__init__(self, 'flickrlogo1_%s_%s' % (myclass, image_set))
+        imdb.__init__(self, 'flickrlogoBin_%s_%s' % (myclass, image_set))
         self._year = '2011'
         self._image_set = image_set
         self._devkit_path = self._get_default_path() if devkit_path is None \
                             else devkit_path
-        self._data_path = os.path.join(self._devkit_path, 'flickrlogo32')
+        self._data_path = os.path.join(self._devkit_path, 'flickrlogoBin-%s' % myclass)
         self._myclass = myclass   # target class out of all the possible 32
         self._classes = ('no-logo', self._myclass) 
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
@@ -149,15 +153,9 @@ class flickrlogo1(imdb):
         return self.create_roidb_from_box_list(box_list, gt_roidb)
 
     def _load_selective_search_roidb(self, gt_roidb):
-        # replace flickrlogo1 with flickrlogo32 for selective search
-        idx1 = self.name.find('flickrlogo1')
-        idx2 = self.name.find('_', idx1+len('flickrlogo1_'))
-        name = self.name[:idx1] + 'flickrlogo32' + self.name[idx2:]
-        print name
-        
         filename = os.path.abspath(os.path.join(cfg.DATA_DIR,
                                                 'selective_search_data',
-                                                name + '.mat'))
+                                                self.name + '.mat'))
         assert os.path.exists(filename), \
                'Selective search data not found at: {}'.format(filename)
         raw_data = sio.loadmat(filename)['boxes'].ravel()
@@ -203,10 +201,10 @@ class flickrlogo1(imdb):
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
             # Make pixel indexes 0-based
-            x1 = float(bbox.find('xmin').text) - 1
-            y1 = float(bbox.find('ymin').text) - 1
-            x2 = float(bbox.find('xmax').text) - 1
-            y2 = float(bbox.find('ymax').text) - 1
+            x1 = float(bbox.find('xmin').text)
+            y1 = float(bbox.find('ymin').text)
+            x2 = float(bbox.find('xmax').text)
+            y2 = float(bbox.find('ymax').text)
             if obj.find('name').text.lower().strip() == self._myclass:
                 #cls = self._class_to_ind[obj.find('name').text.lower().strip()]
                 cls_inds.append(ix)  # need only our class
@@ -240,7 +238,7 @@ class flickrlogo1(imdb):
         path = os.path.join(
             self._devkit_path,
             'results',
-            'flickrlogo1-%s' % self._myclass,
+            'flickrlogoBin-%s' % self._myclass,
             'Main',
             filename)
         return path
@@ -251,9 +249,9 @@ class flickrlogo1(imdb):
                 continue
             filename = self._get_voc_results_file_template().format(cls)
             print 'Writing {} VOC results file to {}'.format(cls, filename)
-            if not op.exists(op.dirname(filename)):
-                os.makedirs(op.dirname(filename))
+            assert op.exists(op.dirname(filename))
             with open(filename, 'wt') as f:
+                print self.image_index
                 for im_ind, index in enumerate(self.image_index):
                     dets = all_boxes[cls_ind][im_ind]
                     if dets == []:
@@ -346,7 +344,7 @@ class flickrlogo1(imdb):
             self.config['cleanup'] = True
 
 if __name__ == '__main__':
-    from datasets.flickrlogo1 import flickrlogo1
-    d = flickrlogo1()
+    from datasets.flickrlogoBin import flickrlogoBin
+    d = flickrlogoBin()
     res = d.roidb
     from IPython import embed; embed()

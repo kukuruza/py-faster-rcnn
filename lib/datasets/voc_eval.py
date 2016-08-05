@@ -117,7 +117,7 @@ def voc_eval(detpath,
         for i, imagename in enumerate(imagenames):
             recs[imagename] = parse_rec(annopath.format(imagename))
             if i % 100 == 0:
-                print 'Reading annotation for {:d}/{:d}'.format(
+                print 'Reading cached annotation for {:d}/{:d}'.format(
                     i + 1, len(imagenames))
         # save
         print 'Saving cached annotations to {:s}'.format(cachefile)
@@ -125,6 +125,7 @@ def voc_eval(detpath,
             cPickle.dump(recs, f)
     else:
         # load
+        print 'Loading annotations from {:s}'.format(cachefile)
         with open(cachefile, 'r') as f:
             recs = cPickle.load(f)
 
@@ -133,6 +134,9 @@ def voc_eval(detpath,
     npos = 0
     for imagename in imagenames:
         R = [obj for obj in recs[imagename] if obj['name'] == classname]
+#        if classname == 'ups' and len(R) > 0:
+#          print '%s' % str(imagename)
+#          print recs[imagename]
         bbox = np.array([x['bbox'] for x in R])
         difficult = np.array([x['difficult'] for x in R]).astype(np.bool)
         det = [False] * len(R)

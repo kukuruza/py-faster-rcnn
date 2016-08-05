@@ -241,7 +241,17 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
     if not cfg.TEST.HAS_RPN:
         roidb = imdb.roidb
 
+    # test only a subset of the dataset for debugging
+    assert cfg.TEST.NUM_IMAGES is not None
+    if cfg.TEST.NUM_IMAGES <= 0:
+        print 'will test the whole image set'
+    else:
+        assert cfg.TEST.NUM_IMAGES <= num_images
+        print 'will test %d out of %d images' % (cfg.TEST.NUM_IMAGES, num_images)
+        num_images = cfg.TEST.NUM_IMAGES
+
     for i in xrange(num_images):
+
         # filter out any ground truth boxes
         if cfg.TEST.HAS_RPN:
             box_proposals = None
@@ -254,6 +264,8 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
             box_proposals = roidb[i]['boxes'][roidb[i]['gt_classes'] == 0]
 
         im = cv2.imread(imdb.image_path_at(i))
+        #cv2.imshow('test', im)
+        #cv2.waitKey(-1)
         _t['im_detect'].tic()
         scores, boxes = im_detect(net, im, box_proposals)
         _t['im_detect'].toc()

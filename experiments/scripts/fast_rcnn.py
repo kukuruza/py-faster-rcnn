@@ -75,8 +75,13 @@ if __name__ == "__main__":
     TEST_IMDB = "flickrlogo1_%s_test" % args.MYCLASS
     PT_DIR = "flickrlogo1"
     ITERS = args.ITERS if args.ITERS is not None else 10000
+  elif args.DATASET == 'flickrlogoBin':
+    TRAIN_IMDB = "flickrlogoBin_%s_val" % args.MYCLASS
+    TEST_IMDB = "flickrlogoBin_%s_test" % args.MYCLASS
+    PT_DIR = "flickrlogo1"
+    ITERS = args.ITERS if args.ITERS is not None else 10000
   else:
-    print 'Provide a dataset, "pascal_voc", "coco", or "flickrlogo32"'
+    print 'Provide a dataset, "pascal_voc", "coco", or "flickrlogo-XXX"'
     sys.exit()
 
   # redirect output to the LOG file
@@ -114,6 +119,9 @@ if __name__ == "__main__":
     print 'Cant find "Wrote snapshot to:" line in LOG file.'
     print 'Log file: %s' % LOG
     sys.exit()
+
+  print 'Done. Not testing. Exit.'
+  sys.exit()
 
   # run testing
   start = time.time()

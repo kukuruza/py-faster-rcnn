@@ -13,6 +13,7 @@ from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
 from datasets.flickrlogo32 import flickrlogo32
 from datasets.flickrlogo1 import flickrlogo1, binclasses
+from datasets.flickrlogoBin import flickrlogoBin
 import numpy as np
 
 # Set up voc_<year>_<split> using selective search "fast" mode
@@ -37,10 +38,15 @@ for split in ['train', 'test', 'test_try', 'val']:
     name = 'flickrlogo32_{}'.format(split)
     __sets[name] = (lambda split=split: flickrlogo32(split))
 
-for split in ['train', 'test', 'test_try', 'val']:
+for split in ['train', 'test', 'val']:
     for cls in binclasses:
         name = 'flickrlogo1_{}_{}'.format(cls, split)
         __sets[name] = (lambda split=split, cls=cls: flickrlogo1(split, cls))
+
+for split in ['train', 'test', 'val']:
+    for cls in binclasses:
+        name = 'flickrlogoBin_{}_{}'.format(cls, split)
+        __sets[name] = (lambda split=split, cls=cls: flickrlogoBin(split, cls))
 
 def get_imdb(name):
     """Get an imdb (image database) by name."""

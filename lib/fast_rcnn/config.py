@@ -163,6 +163,8 @@ __C.TEST.RPN_POST_NMS_TOP_N = 300
 # Proposal height and width both need to be greater than RPN_MIN_SIZE (at orig image scale)
 __C.TEST.RPN_MIN_SIZE = 16
 
+# Number of images to test (default -1 means all imageset)
+__C.TEST.NUM_IMAGES = -1
 
 #
 # MISC

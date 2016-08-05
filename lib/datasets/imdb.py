@@ -105,7 +105,8 @@ class imdb(object):
         widths = self._get_widths()
         for i in xrange(num_images):
             boxes = self.roidb[i]['boxes'].copy()
-            assert (boxes[:, 3] >= boxes[:, 1]).all(), i
+            assert (boxes[:, 3] >= boxes[:, 1]).all(), \
+                'image: %s, \nboxes:\n %s' % (self.image_path_at(i), boxes)
             assert (boxes[:, 0] >= 0).all(), i
             oldx1 = boxes[:, 0].copy()
             oldx2 = boxes[:, 2].copy()
