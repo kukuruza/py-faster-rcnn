@@ -13,6 +13,7 @@ from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
 from datasets.flickrlogo32 import flickrlogo32
 from datasets.flickrlogo1 import flickrlogo1, binclasses
+from datasets.vehicle import vehicle
 import numpy as np
 
 # Set up voc_<year>_<split> using selective search "fast" mode
@@ -51,3 +52,11 @@ def get_imdb(name):
 def list_imdbs():
     """List all registered imdbs."""
     return __sets.keys()
+
+
+
+def construct_imdb(name, image_set, data_path):
+    if name == 'vehicle':
+        return vehicle(image_set=image_set, data_path=data_path)
+    elif name == 'flickrlogo32':
+        return flickrlogo32(image_set=image_set, data_path=data_path)

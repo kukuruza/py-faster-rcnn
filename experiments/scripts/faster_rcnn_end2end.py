@@ -37,8 +37,9 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument('--SOLVER_NAME', default='solver.prototxt', help='name of solver file')
   parser.add_argument('--GPU', default='0', type=str, help='GPU id, or -1 for CPU')
-  parser.add_argument('--NET', required=True, help='CNN archiutecture')
-  parser.add_argument('--DATASET', required=True, help='either "pascal_voc" or "coco"')
+  parser.add_argument('--NET', required=True, help='CNN archiutecture, e.g. "VGG16"')
+  parser.add_argument('--DATASET', required=True, '"pascal_voc", "coco", etc.')
+  parser.add_argument('--DATA_PATH', required=True)
   parser.add_argument('--ITERS',
   	                  help='number of iter., default for pascal_voc = 70K, for coco = 490K')
   parser.add_argument('--LOG_TO_SCREEN', action='store_true', 
@@ -67,10 +68,14 @@ if __name__ == "__main__":
     # This is a very long and slow training schedule
     # You can probably use fewer iterations and reduce the
     # time to the LR drop (set in the solver to 350,000 iterations).
-    TRAIN_IMDB = "flickrlogo32_val"
-    TEST_IMDB = "flickrlogo32_test"
+    TRAIN_IMAGESET = "val"
     PT_DIR = "flickrlogo32"
     ITERS = args.ITERS if args.ITERS is not None else 10000
+  elif args.DATASET == 'vehicle':
+    IMDB = 'vehicle'
+    TRAIN_IMAGESET = 'train'
+    PT_DIR = 'vehicle'
+    ITERS = args.ITERS
   else:
     print 'Provide a dataset, "pascal_voc", "flickrlogo32" or "coco"'
     sys.exit()
@@ -79,14 +84,6 @@ if __name__ == "__main__":
   suffix = splits[-1] if len(splits) > 1 else ''
   print 'suffix: %s' % suffix
 
-  # redirect output to the LOG file
-  if not args.LOG_TO_SCREEN:
-    DATE = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    LOG = at_fcnn('experiments/logs/faster_rcnn_end2end_%s_%s_%s.txt' %
-          (args.NET, EXTRA_ARGS_SLUG, DATE))
-    print 'Logging output to %s' % LOG
-    sys.stdout = open(LOG, 'w')
-
   # run training
   start = time.time()
   train_net.main([
@@ -94,35 +91,12 @@ if __name__ == "__main__":
     '--solver', at_fcnn('models/%s/%s/faster_rcnn_end2end/%s' % 
                         (PT_DIR, args.NET, args.SOLVER_NAME)),
     '--weights', at_fcnn('data/imagenet_models/%s.v2.caffemodel' % args.NET),
-    '--imdb', TRAIN_IMDB,
+    '--image_set', TRAIN_IMAGESET,
+    '--imdb', args.DATASET,
+    '--data_path', args.DATA_PATH,
     '--iters', str(ITERS),
     '--suffix', suffix,
     '--cfg', at_fcnn('experiments/cfgs/faster_rcnn_end2end.yml')] +
     ([] if not args.EXTRA_ARGS else ['--set'] + args.EXTRA_ARGS))
   print 'tools/train_net.py finished in %s seconds' % (time.time() - start)
 
-  # find the path to the snapshot in the log
-  try:
-    with open(LOG) as f:
-      lines = f.readlines()
-      # find a line that has these words
-      line = next((line for line in reversed(lines) if 'Wrote snapshot to:' in line), None)
-      print 'Taking this line from log to get the snapshot: %s' % line
-      # the 4th word in this line is the name of the model
-      NET_FINAL = line.split()[3]
-      print 'Will test the output model at: %s' % NET_FINAL
-  except:
-    print 'Cant find "Wrote snapshot to:" line in LOG file.'
-    print 'Log file: %s' % LOG
-    sys.exit()
-
-  # run testing
-  start = time.time()
-  test_net.main([
-    '--gpu', args.GPU,
-    '--def', at_fcnn('models/%s/%s/faster_rcnn_end2end/test.prototxt' % (PT_DIR, args.NET)),
-    '--net', NET_FINAL,
-    '--imdb', TEST_IMDB,
-    '--cfg', at_fcnn('experiments/cfgs/faster_rcnn_end2end.yml')] + \
-    ([] if not args.EXTRA_ARGS is not None else ['--set'] + args.EXTRA_ARGS))
-  print 'tools/test_net.py finished in %s seconds' % (time.time() - start)

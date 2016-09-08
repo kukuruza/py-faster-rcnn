@@ -1,10 +1,3 @@
-# --------------------------------------------------------
-# Fast R-CNN
-# Copyright (c) 2015 Microsoft
-# Licensed under The MIT License [see LICENSE for details]
-# Written by Ross Girshick
-# --------------------------------------------------------
-
 import os
 from datasets.imdb import imdb
 import datasets.ds_utils as ds_utils
@@ -19,20 +12,14 @@ import uuid
 from voc_eval import voc_eval
 from fast_rcnn.config import cfg
 
-class flickrlogo32(imdb):
+class vehicle(imdb):
+    ''' Binary classifier vehicles / nonvehicles '''
     def __init__(self, image_set, data_path):
-        imdb.__init__(self, 'flickrlogo32' + '_' + image_set)
+        imdb.__init__(self, 'vehicle_%s' % image_set)
         self._year = '2011'
         self._image_set = image_set
         self._data_path = data_path
-        self._classes = ('no-logo', # always index 0
-                         'adidas', 'aldi', 'apple', 'becks', 'bmw', 'carlsberg', 
-                         'chimay', 'cocacola', 'corona', 'dhl', 'erdinger', 
-                         'esso', 'fedex', 'ferrari', 'ford', "fosters", 
-                         'google', 'guiness', 'heineken', 'hp', 'milka', 
-                         'nvidia', 'paulaner', 'pepsi', 'rittersport', 'shell', 
-                         'singha', 'starbucks', 'stellaartois', 'texaco', 
-                         'tsingtao', 'ups')
+        self._classes = ('__background__', 'vehicle')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
         self._image_ext = '.jpg'
         self._image_index = self._load_image_set_index()
@@ -73,7 +60,7 @@ class flickrlogo32(imdb):
         Load the indexes listed in this dataset's image set file.
         """
         # Example path to image set file:
-        # self._devkit_path + /VOCdevkit2007/VOC2007/ImageSets/Main/val.txt
+        # self._data_path + /ImageSets/Main/val.txt
         image_set_file = os.path.join(self._data_path, 'ImageSets', 'Main',
                                       self._image_set + '.txt')
         assert os.path.exists(image_set_file), \
@@ -103,9 +90,9 @@ class flickrlogo32(imdb):
 
         gt_roidb = [self._load_pascal_annotation(index)
                     for index in self.image_index]
-        with open(cache_file, 'wb') as fid:
-            cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
-        print 'wrote gt roidb to {}'.format(cache_file)
+        #with open(cache_file, 'wb') as fid:
+        #    cPickle.dump(gt_roidb, fid, cPickle.HIGHEST_PROTOCOL)
+        #print 'wrote gt roidb to {}'.format(cache_file)
 
         return gt_roidb
 
@@ -154,24 +141,30 @@ class flickrlogo32(imdb):
             box_list = cPickle.load(f)
         return self.create_roidb_from_box_list(box_list, gt_roidb)
 
-    def _load_selective_search_roidb(self, gt_roidb):
-        filename = os.path.abspath(os.path.join(cfg.DATA_DIR,
-                                                'selective_search_data',
-                                                self.name + '.mat'))
-        assert os.path.exists(filename), \
-               'Selective search data not found at: {}'.format(filename)
-        raw_data = sio.loadmat(filename)['boxes'].ravel()
-
-        box_list = []
-        for i in xrange(raw_data.shape[0]):
-            boxes = raw_data[i][:, (1, 0, 3, 2)] - 1
-            keep = ds_utils.unique_boxes(boxes)
-            boxes = boxes[keep, :]
-            keep = ds_utils.filter_small_boxes(boxes, self.config['min_size'])
-            boxes = boxes[keep, :]
-            box_list.append(boxes)
-
-        return self.create_roidb_from_box_list(box_list, gt_roidb)
+#    def _load_selective_search_roidb(self, gt_roidb):
+#        # replace flickrlogo1 with flickrlogo32 for selective search
+#        idx1 = self.name.find('flickrlogo1')
+#        idx2 = self.name.find('_', idx1+len('flickrlogo1_'))
+#        name = self.name[:idx1] + 'flickrlogo32' + self.name[idx2:]
+#        print name
+#        
+#        filename = os.path.abspath(os.path.join(cfg.DATA_DIR,
+#                                                'selective_search_data',
+#                                                name + '.mat'))
+#        assert os.path.exists(filename), \
+#               'Selective search data not found at: {}'.format(filename)
+#        raw_data = sio.loadmat(filename)['boxes'].ravel()
+#
+#        box_list = []
+#        for i in xrange(raw_data.shape[0]):
+#            boxes = raw_data[i][:, (1, 0, 3, 2)] - 1
+#            keep = ds_utils.unique_boxes(boxes)
+#            boxes = boxes[keep, :]
+#            keep = ds_utils.filter_small_boxes(boxes, self.config['min_size'])
+#            boxes = boxes[keep, :]
+#            box_list.append(boxes)
+#
+#        return self.create_roidb_from_box_list(box_list, gt_roidb)
 
     def _load_pascal_annotation(self, index):
         """
@@ -181,22 +174,14 @@ class flickrlogo32(imdb):
         filename = os.path.join(self._data_path, 'Annotations', index + '.xml')
         tree = ET.parse(filename)
         objs = tree.findall('object')
-        if not self.config['use_diff']:
-            # Exclude the samples labeled as difficult
-            non_diff_objs = [
-                obj for obj in objs 
-                    if not obj.find('difficult') or int(obj.find('difficult').text) == 0]
-            # if len(non_diff_objs) != len(objs):
-            #     print 'Removed {} difficult objects'.format(
-            #         len(objs) - len(non_diff_objs))
-            objs = non_diff_objs
         num_objs = len(objs)
 
         boxes = np.zeros((num_objs, 4), dtype=np.uint16)
         gt_classes = np.zeros((num_objs), dtype=np.int32)
-        overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
+        overlaps = np.zeros((num_objs, 2), dtype=np.float32) # '__background__' & 'vehicle'
         # "Seg" area for pascal is just the box area
         seg_areas = np.zeros((num_objs), dtype=np.float32)
+        cls_inds = []
 
         # Load object bounding boxes into a data frame.
         for ix, obj in enumerate(objs):
@@ -206,19 +191,22 @@ class flickrlogo32(imdb):
             y1 = float(bbox.find('ymin').text) - 1
             x2 = float(bbox.find('xmax').text) - 1
             y2 = float(bbox.find('ymax').text) - 1
-            cls = self._class_to_ind[obj.find('name').text.lower().strip()]
+            #cls = self._class_to_ind[obj.find('name').text.lower().strip()]
+            cls_inds.append(ix)  # need only our class
             boxes[ix, :] = [x1, y1, x2, y2]
-            gt_classes[ix] = cls
-            overlaps[ix, cls] = 1.0
+            gt_classes[ix] = 1  # 1 is the 'vehicle' index
+            overlaps[ix, 1] = 1.0  # 1 is the 'vehicle' index
             seg_areas[ix] = (x2 - x1 + 1) * (y2 - y1 + 1)
 
-        # imagename = tree.find('filename').text
-        # if imagename == '000158.jpg':
-        #     print boxes
-        #     import sys
-        #     sys.exit()
+        # need only one class
+        boxes = boxes[cls_inds, :]
+        gt_classes = gt_classes[cls_inds]
+        overlaps = overlaps[cls_inds, :]
+        seg_areas = seg_areas[cls_inds]
 
         overlaps = scipy.sparse.csr_matrix(overlaps)
+
+        #print 'gt_classes: ', gt_classes
 
         return {'boxes' : boxes,
                 'gt_classes': gt_classes,
@@ -232,18 +220,14 @@ class flickrlogo32(imdb):
         return comp_id
 
     def _get_voc_results_file_template(self):
-        # VOCdevkit/results/VOC2007/Main/<comp_id>_det_test_aeroplane.txt
+        # _data_path/results/<comp_id>_det_test_aeroplane.txt
         filename = self._get_comp_id() + '_det_' + self._image_set + '_{}.txt'
-        path = os.path.join(
-            self._data_path,
-            'results',
-            'Main',
-            filename)
+        path = os.path.join(self._data_path, 'results', filename)
         return path
 
     def _write_voc_results_file(self, all_boxes):
         for cls_ind, cls in enumerate(self.classes):
-            if cls == 'no-logo':
+            if cls == '__background__':
                 continue
             print 'Writing {} VOC results file'.format(cls)
             filename = self._get_voc_results_file_template().format(cls)
@@ -277,7 +261,7 @@ class flickrlogo32(imdb):
         if not os.path.isdir(output_dir):
             os.mkdir(output_dir)
         for i, cls in enumerate(self._classes):
-            if cls == 'no-logo':
+            if cls == '__background__':
                 continue
             filename = self._get_voc_results_file_template().format(cls)
             rec, prec, ap = voc_eval(
@@ -294,13 +278,13 @@ class flickrlogo32(imdb):
             print('{:.3f}'.format(ap))
         print('{:.3f}'.format(np.mean(aps)))
         print('~~~~~~~~')
-        print('')
-        print('--------------------------------------------------------------')
-        print('Results computed with the **unofficial** Python eval code.')
-        print('Results should be very close to the official MATLAB eval code.')
-        print('Recompute with `./tools/reval.py --matlab ...` for your paper.')
-        print('-- Thanks, The Management')
-        print('--------------------------------------------------------------')
+#        print('')
+#        print('--------------------------------------------------------------')
+#        print('Results computed with the **unofficial** Python eval code.')
+#        print('Results should be very close to the official MATLAB eval code.')
+#        print('Recompute with `./tools/reval.py --matlab ...` for your paper.')
+#        print('-- Thanks, The Management')
+#        print('--------------------------------------------------------------')
 
 #    def _do_matlab_eval(self, output_dir='output'):
 #        print '-----------------------------------------------------'
@@ -316,7 +300,7 @@ class flickrlogo32(imdb):
 #                       self._image_set, output_dir)
 #        print('Running:\n{}'.format(cmd))
 #        status = subprocess.call(cmd, shell=True)
-
+#
     def evaluate_detections(self, all_boxes, output_dir):
         self._write_voc_results_file(all_boxes)
         self._do_python_eval(output_dir)
@@ -324,7 +308,7 @@ class flickrlogo32(imdb):
             self._do_matlab_eval(output_dir)
         if self.config['cleanup']:
             for cls in self._classes:
-                if cls == 'no-logo':
+                if cls == '__background__':
                     continue
                 filename = self._get_voc_results_file_template().format(cls)
                 os.remove(filename)
@@ -338,7 +322,7 @@ class flickrlogo32(imdb):
             self.config['cleanup'] = True
 
 if __name__ == '__main__':
-    from datasets.flickrlogo32 import flickrlogo32
-    d = flickrlogo32()
+    from datasets.flickrlogo1 import flickrlogo1
+    d = flickrlogo1()
     res = d.roidb
     from IPython import embed; embed()

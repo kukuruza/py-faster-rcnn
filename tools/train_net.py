@@ -12,7 +12,7 @@
 import _init_paths
 from fast_rcnn.train import get_training_roidb, train_net
 from fast_rcnn.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
-from datasets.factory import get_imdb
+from datasets.factory import construct_imdb #get_imdb
 import datasets.imdb
 import caffe
 import argparse
@@ -41,9 +41,17 @@ def parse_args(args_list):
     parser.add_argument('--cfg', dest='cfg_file',
                         help='optional config file',
                         default=None, type=str)
+#    parser.add_argument('--imdb', dest='imdb_name',
+#                        help='dataset to train on',
+#                        default='voc_2007_trainval', type=str)
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to train on',
-                        default='voc_2007_trainval', type=str)
+                        default='voc_2007', type=str)
+    parser.add_argument('--imageset', dest='imageset',
+                        required=True, help='e.g. "trainval"', type=str)
+    parser.add_argument('--data_path', dest='data_path',
+                        help='path to dataset with JPEGImages, Annotations, ImagesSet',
+                        required=True)
     parser.add_argument('--rand', dest='randomize',
                         help='randomize (do not use a fixed seed)',
                         action='store_true')
@@ -61,23 +69,36 @@ def parse_args(args_list):
     args = parser.parse_args(args_list)
     return args
 
-def combined_roidb(imdb_names):
-    def get_roidb(imdb_name):
-        imdb = get_imdb(imdb_name)
+#def combined_roidb(imdb_names):
+#    def get_roidb(imdb_name):
+#        imdb = get_imdb(imdb_name)
+#        print 'Loaded dataset `{:s}` for training'.format(imdb.name)
+#        imdb.set_proposal_method(cfg.TRAIN.PROPOSAL_METHOD)
+#        print 'Set proposal method: {:s}'.format(cfg.TRAIN.PROPOSAL_METHOD)
+#        roidb = get_training_roidb(imdb)
+#        return roidb
+#
+#    roidbs = [get_roidb(s) for s in imdb_names.split('+')]
+#    roidb = roidbs[0]
+#    if len(roidbs) > 1:
+#        for r in roidbs[1:]:
+#            roidb.extend(r)
+#        imdb = datasets.imdb.imdb(imdb_names)
+#    else:
+#        imdb = get_imdb(imdb_names)
+#    return imdb, roidb
+
+def combined_roidb(imdb_name, imageset, data_path):
+    def get_roidb(imdb_name, imageset, data_path):
+        imdb = construct_imdb(imdb_name, imageset, data_path)
         print 'Loaded dataset `{:s}` for training'.format(imdb.name)
         imdb.set_proposal_method(cfg.TRAIN.PROPOSAL_METHOD)
         print 'Set proposal method: {:s}'.format(cfg.TRAIN.PROPOSAL_METHOD)
         roidb = get_training_roidb(imdb)
         return roidb
 
-    roidbs = [get_roidb(s) for s in imdb_names.split('+')]
-    roidb = roidbs[0]
-    if len(roidbs) > 1:
-        for r in roidbs[1:]:
-            roidb.extend(r)
-        imdb = datasets.imdb.imdb(imdb_names)
-    else:
-        imdb = get_imdb(imdb_names)
+    roidb = get_roidb(imdb_name, imageset, data_path)
+    imdb = construct_imdb(imdb_name, imageset, data_path)
     return imdb, roidb
 
 def main(args_list):
@@ -109,7 +130,7 @@ def main(args_list):
         caffe.set_mode_gpu()
         caffe.set_device(cfg.GPU_ID)
 
-    imdb, roidb = combined_roidb(args.imdb_name)
+    imdb, roidb = combined_roidb(args.imdb_name, args.imageset, args.data_path)
     print '{:d} roidb entries'.format(len(roidb))
 
     output_dir = get_output_dir(imdb)

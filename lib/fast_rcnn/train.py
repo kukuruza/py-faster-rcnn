@@ -139,7 +139,7 @@ def filter_roidb(roidb):
         bg_inds = np.where((overlaps < cfg.TRAIN.BG_THRESH_HI) &
                            (overlaps >= cfg.TRAIN.BG_THRESH_LO))[0]
         # image is only valid if such boxes exist
-        valid = len(fg_inds) > 0 and len(bg_inds) > 0
+        valid = len(fg_inds) > 0 or len(bg_inds) > 0
         return valid
 
     num = len(roidb)
