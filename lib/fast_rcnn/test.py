@@ -268,9 +268,11 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
                 .astype(np.float32, copy=False)
             keep = nms(cls_dets, cfg.TEST.NMS)
             cls_dets = cls_dets[keep, :]
+            print 'after NMS left %d' % cls_dets.shape[0]
             if vis:
                 vis_detections(im, imdb.classes[j], cls_dets)
             all_boxes[j][i] = cls_dets
+            print all_boxes[j][i].astype(int)
 
         # Limit to max_per_image detections *over all classes*
         if max_per_image > 0:

@@ -125,6 +125,7 @@ def main(args_list):
     if cfg.GPU_ID < 0:
         print 'Setting CPU mode'
         caffe.set_mode_cpu()
+        cfg.USE_GPU_NMS = False
     else:
         print 'Setting GPU device %d for training' % cfg.GPU_ID
         caffe.set_mode_gpu()

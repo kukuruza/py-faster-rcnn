@@ -12,7 +12,8 @@
 import _init_paths
 from fast_rcnn.test import test_net
 from fast_rcnn.config import cfg, cfg_from_file, cfg_from_list
-from datasets.factory import get_imdb, construct_imdb
+from datasets.factory import construct_imdb
+#from datasets.factory import get_imdb
 import caffe
 import argparse
 import pprint
@@ -85,8 +86,15 @@ def main(args_list):
         print('Waiting for {} to exist...'.format(args.caffemodel))
         time.sleep(10)
 
-    caffe.set_mode_gpu()
-    caffe.set_device(args.gpu_id)
+    if cfg.GPU_ID < 0:
+        print 'Setting CPU mode'
+        caffe.set_mode_cpu()
+        cfg.USE_GPU_NMS = False
+    else:
+        print 'Setting GPU device %d for training' % cfg.GPU_ID
+        caffe.set_mode_gpu()
+        caffe.set_device(cfg.GPU_ID)
+
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     net.name = os.path.splitext(os.path.basename(args.caffemodel))[0]
 

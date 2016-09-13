@@ -66,9 +66,9 @@ def voc_eval(detpath,
              annopath,
              imagesetfile,
              classname,
-             cachedir,
              ovthresh=0.5,
-             use_07_metric=False):
+             use_07_metric=False,
+             any_GT_name=False):
     """rec, prec, ap = voc_eval(detpath,
                                 annopath,
                                 imagesetfile,
@@ -84,41 +84,24 @@ def voc_eval(detpath,
         annopath.format(imagename) should be the xml annotations file.
     imagesetfile: Text file containing the list of images, one image per line.
     classname: Category name (duh)
-    cachedir: Directory for caching the annotations
+    cachedir: NOT USED
     [ovthresh]: Overlap threshold (default = 0.5)
     [use_07_metric]: Whether to use VOC07's 11 point AP computation
         (default False)
+    [any_GT_name]: if true any name of ground truth will match detection
     """
     # assumes detections are in detpath.format(classname)
     # assumes annotations are in annopath.format(imagename)
     # assumes imagesetfile is a text file with each line an image name
-    # cachedir caches the annotations in a pickle file
 
-    # first load gt
-    if not os.path.isdir(cachedir):
-        os.mkdir(cachedir)
-    cachefile = os.path.join(cachedir, 'annots.pkl')
-    # read list of images
     with open(imagesetfile, 'r') as f:
         lines = f.readlines()
     imagenames = [x.strip() for x in lines]
 
-    if not os.path.isfile(cachefile):
-        # load annots
-        recs = {}
-        for i, imagename in enumerate(imagenames):
-            recs[imagename] = parse_rec(annopath.format(imagename))
-            if i % 100 == 0:
-                print 'Reading annotation for {:d}/{:d}'.format(
-                    i + 1, len(imagenames))
-        # save
-        print 'Saving cached annotations to {:s}'.format(cachefile)
-        with open(cachefile, 'w') as f:
-            cPickle.dump(recs, f)
-    else:
-        # load
-        with open(cachefile, 'r') as f:
-            recs = cPickle.load(f)
+    # load annots
+    ET_objects = {}
+    for i, imagename in enumerate(imagenames):
+        ET_objs[imagename] = parse_rec(annopath.format(imagename))
 
     print 'classname: %s' % classname
 
@@ -126,10 +109,11 @@ def voc_eval(detpath,
     class_recs = {}
     npos = 0
     for imagename in imagenames:
-        R = [obj for obj in recs[imagename] if obj['name'] == classname]
-        bbox = np.array([x['bbox'] for x in R])
-        difficult = np.array([x['difficult'] for x in R]).astype(np.bool)
-        det = [False] * len(R)
+        ET_obj = [obj for obj in ET_obje[imagename] 
+                  if obj['name'] == classname or any_GT_name]
+        bbox = np.array([x['bbox'] for x in ET_obj])
+        difficult = np.array([x['difficult'] for x in ET_obj]).astype(np.bool)
+        det = [False] * len(ET_obj)
         npos = npos + sum(~difficult)
         class_recs[imagename] = {'bbox': bbox,
                                  'difficult': difficult,
