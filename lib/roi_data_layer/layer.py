@@ -17,6 +17,11 @@ import numpy as np
 import yaml
 from multiprocessing import Process, Queue
 
+import sys, os
+sys.path.insert(0, os.path.join(os.getenv('CITY_PATH'), 'src'))
+from learning.helperImg import ReaderVideo
+
+
 class RoIDataLayer(caffe.Layer):
     """Fast R-CNN data layer used for training."""
 
@@ -60,7 +65,7 @@ class RoIDataLayer(caffe.Layer):
         else:
             db_inds = self._get_next_minibatch_inds()
             minibatch_db = [self._roidb[i] for i in db_inds]
-            return get_minibatch(minibatch_db, self._num_classes)
+            return get_minibatch(minibatch_db, self._reader, self._num_classes)
 
     def set_roidb(self, roidb):
         """Set the roidb to be used by this layer during training."""
@@ -89,6 +94,8 @@ class RoIDataLayer(caffe.Layer):
         self._num_classes = layer_params['num_classes']
 
         self._name_to_top_map = {}
+
+        self._reader = ReaderVideo()
 
         # data blob: holds a batch of N images, each with 3 channels
         idx = 0

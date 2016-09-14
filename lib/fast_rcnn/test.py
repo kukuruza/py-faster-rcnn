@@ -17,7 +17,11 @@ import caffe
 from fast_rcnn.nms_wrapper import nms
 import cPickle
 from utils.blob import im_list_to_blob
-import os
+
+import sys, os
+sys.path.insert(0, os.path.join(os.getenv('CITY_PATH'), 'src'))
+from learning.helperImg import ReaderVideo
+
 
 def _get_image_blob(im):
     """Converts an image into a network input.
@@ -226,7 +230,7 @@ def apply_nms(all_boxes, thresh):
 
 def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
     """Test a Fast R-CNN network on an image database."""
-    num_images = len(imdb.image_index)
+    num_images = imdb.num_images()
     # all detections are collected into:
     #    all_boxes[cls][image] = N x 5 array of detections in
     #    (x1, y1, x2, y2, score)
@@ -241,6 +245,8 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
     if not cfg.TEST.HAS_RPN:
         roidb = imdb.roidb
 
+    reader = ReaderVideo()
+
     for i in xrange(num_images):
         # filter out any ground truth boxes
         if cfg.TEST.HAS_RPN:
@@ -253,7 +259,7 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
             # ground truth.
             box_proposals = roidb[i]['boxes'][roidb[i]['gt_classes'] == 0]
 
-        im = cv2.imread(imdb.image_path_at(i))
+        im = reader.imread(imdb.get_imagefile_at(i))
         _t['im_detect'].tic()
         scores, boxes = im_detect(net, im, box_proposals)
         _t['im_detect'].toc()
@@ -268,11 +274,9 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
                 .astype(np.float32, copy=False)
             keep = nms(cls_dets, cfg.TEST.NMS)
             cls_dets = cls_dets[keep, :]
-            print 'after NMS left %d' % cls_dets.shape[0]
             if vis:
                 vis_detections(im, imdb.classes[j], cls_dets)
             all_boxes[j][i] = cls_dets
-            print all_boxes[j][i].astype(int)
 
         # Limit to max_per_image detections *over all classes*
         if max_per_image > 0:

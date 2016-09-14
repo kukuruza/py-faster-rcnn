@@ -12,8 +12,7 @@
 import _init_paths
 from fast_rcnn.test import test_net
 from fast_rcnn.config import cfg, cfg_from_file, cfg_from_list
-from datasets.factory import construct_imdb
-#from datasets.factory import get_imdb
+from datasets.factory import get_imdb
 import caffe
 import argparse
 import pprint
@@ -37,16 +36,11 @@ def parse_args(args_list):
     parser.add_argument('--wait', dest='wait',
                         help='wait until net file exists',
                         default=True, type=bool)
-#    parser.add_argument('--imdb', dest='imdb_name',
-#                        help='dataset to test',
-#                        default='voc_2007_test', type=str)
     parser.add_argument('--imdb', dest='imdb_name',
-                        help='dataset to train on',
-                        default='voc_2007', type=str)
-    parser.add_argument('--imageset', dest='imageset',
-                        required=True, help='e.g. "test"', type=str)
-    parser.add_argument('--data_path', dest='data_path',
-                        help='path to dataset with JPEGImages, Annotations, ImagesSet',
+                        help='dataset to test on',
+                        default='vehicle', type=str)
+    parser.add_argument('--db_path', dest='db_path',
+                        help='full path to .db file',
                         required=True)
     parser.add_argument('--comp', dest='comp_mode', help='competition mode',
                         action='store_true')
@@ -98,7 +92,7 @@ def main(args_list):
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     net.name = os.path.splitext(os.path.basename(args.caffemodel))[0]
 
-    imdb = construct_imdb(args.imdb_name, args.imageset, args.data_path)
+    imdb = get_imdb(args.imdb_name, args.db_path)
     #imdb = get_imdb(args.imdb_name)
     imdb.competition_mode(args.comp_mode)
     if not cfg.TEST.HAS_RPN:

@@ -4,30 +4,10 @@
 # Written by Bharath Hariharan
 # --------------------------------------------------------
 
-import xml.etree.ElementTree as ET
 import os, os.path as op
 import cPickle
 import numpy as np
 
-def parse_rec(filename):
-    """ Parse a PASCAL VOC xml file """
-    assert op.exists(filename), '%s does not exist' % filename
-    tree = ET.parse(filename)
-    objects = []
-    for obj in tree.findall('object'):
-        obj_struct = {}
-        obj_struct['name'] = obj.find('name').text
-        obj_struct['pose'] = obj.find('pose').text if obj.find('pose') else None
-        obj_struct['truncated'] = int(obj.find('truncated').text) if obj.find('truncated') else False
-        obj_struct['difficult'] = int(obj.find('difficult').text) if obj.find('difficult') else False
-        bbox = obj.find('bndbox')
-        obj_struct['bbox'] = [int(bbox.find('xmin').text),
-                              int(bbox.find('ymin').text),
-                              int(bbox.find('xmax').text),
-                              int(bbox.find('ymax').text)]
-        objects.append(obj_struct)
-
-    return objects
 
 def voc_ap(rec, prec, use_07_metric=False):
     """ ap = voc_ap(rec, prec, [use_07_metric])
@@ -62,12 +42,10 @@ def voc_ap(rec, prec, use_07_metric=False):
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
 
-def voc_eval(detpath,
-             annopath,
-             imagesetfile,
+def voc_eval(cursor,
+             detpath,
              classname,
              ovthresh=0.5,
-             use_07_metric=False,
              any_GT_name=False):
     """rec, prec, ap = voc_eval(detpath,
                                 annopath,
@@ -80,44 +58,34 @@ def voc_eval(detpath,
 
     detpath: Path to detections
         detpath.format(classname) should produce the detection results file.
-    annopath: Path to annotations
-        annopath.format(imagename) should be the xml annotations file.
-    imagesetfile: Text file containing the list of images, one image per line.
     classname: Category name (duh)
-    cachedir: NOT USED
     [ovthresh]: Overlap threshold (default = 0.5)
-    [use_07_metric]: Whether to use VOC07's 11 point AP computation
-        (default False)
     [any_GT_name]: if true any name of ground truth will match detection
     """
     # assumes detections are in detpath.format(classname)
-    # assumes annotations are in annopath.format(imagename)
-    # assumes imagesetfile is a text file with each line an image name
-
-    with open(imagesetfile, 'r') as f:
-        lines = f.readlines()
-    imagenames = [x.strip() for x in lines]
-
-    # load annots
-    ET_objects = {}
-    for i, imagename in enumerate(imagenames):
-        ET_objs[imagename] = parse_rec(annopath.format(imagename))
-
-    print 'classname: %s' % classname
 
     # extract gt objects for this class
     class_recs = {}
     npos = 0
-    for imagename in imagenames:
-        ET_obj = [obj for obj in ET_obje[imagename] 
-                  if obj['name'] == classname or any_GT_name]
-        bbox = np.array([x['bbox'] for x in ET_obj])
-        difficult = np.array([x['difficult'] for x in ET_obj]).astype(np.bool)
-        det = [False] * len(ET_obj)
-        npos = npos + sum(~difficult)
-        class_recs[imagename] = {'bbox': bbox,
-                                 'difficult': difficult,
-                                 'det': det}
+    cursor.execute('SELECT imagefile FROM images')
+    for (imagefile,) in cursor.fetchall():
+
+      if any_GT_name:
+        cursor.execute('SELECT x1,y1,width,height FROM cars '
+                       'WHERE imagefile=?', (imagefile,))
+      else:
+        cursor.execute('SELECT x1,y1,width,height FROM cars '
+                       'WHERE imagefile=? AND name=?', (imagefile,classname))
+      entries = cursor.fetchall()
+
+      bbox = np.array([[x1,y1,x1+width,y1+height] 
+                      for (x1,y1,width,height) in entries])
+      det = [False] * len(entries)
+      npos += len(entries)
+      class_recs[imagefile] = {'bbox': bbox,
+                               'det': det}
+
+    print class_recs
 
     # read dets
     detfile = detpath.format(classname)

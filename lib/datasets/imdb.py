@@ -20,7 +20,6 @@ class imdb(object):
         self._name = name
         self._num_classes = 0
         self._classes = []
-        self._image_index = []
         self._obj_proposer = 'selective_search'
         self._roidb = None
         self._roidb_handler = self.default_roidb
@@ -77,9 +76,9 @@ class imdb(object):
 
     @property
     def num_images(self):
-      return len(self.image_index)
+        raise NotImplementedError
 
-    def image_path_at(self, i):
+    def get_image_at(self, i):
         raise NotImplementedError
 
     def default_roidb(self):
@@ -97,23 +96,24 @@ class imdb(object):
         raise NotImplementedError
 
     def _get_widths(self):
-      return [PIL.Image.open(self.image_path_at(i)).size[0]
-              for i in xrange(self.num_images)]
+        raise NotImplementedError
 
     def append_flipped_images(self):
-        num_images = self.num_images
         widths = self._get_widths()
-        for i in xrange(num_images):
+        for i in xrange(self.num_images()):
             boxes = self.roidb[i]['boxes'].copy()
             assert (boxes[:, 3] >= boxes[:, 1]).all(), i
             assert (boxes[:, 0] >= 0).all(), i
             oldx1 = boxes[:, 0].copy()
             oldx2 = boxes[:, 2].copy()
-            boxes[:, 0] = widths[i] - oldx2 - 1
-            boxes[:, 2] = widths[i] - oldx1 - 1
-            assert (boxes[:, 2] >= boxes[:, 0]).all(), (i, widths[i], boxes, self.image_path_at(i))
+            boxes[:, 0] = widths[i] - oldx2
+            boxes[:, 2] = widths[i] - oldx1
+            assert (boxes[:, 2] >= boxes[:, 0]).all(), boxes
             assert (boxes[:, 0] >= 0).all(), i
-            entry = {'boxes' : boxes,
+            entry = {'imagefile': self.roidb[i]['imagefile'],
+                     'boxes' : boxes,
+                     'width': self.roidb[i]['width'],
+                     'height': self.roidb[i]['height'],
                      'gt_overlaps' : self.roidb[i]['gt_overlaps'],
                      'gt_classes' : self.roidb[i]['gt_classes'],
                      'flipped' : True}
