@@ -42,11 +42,11 @@ def voc_ap(rec, prec, use_07_metric=False):
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
 
-def voc_eval(cursor,
-             detpath,
-             classname,
-             ovthresh=0.5,
-             any_GT_name=False):
+def eval_class(cursor,
+               boxes,
+               classname,
+               ovthresh=0.5,
+               any_GT_name=False):
     """rec, prec, ap = voc_eval(detpath,
                                 annopath,
                                 imagesetfile,
@@ -56,19 +56,17 @@ def voc_eval(cursor,
 
     Top level function that does the PASCAL VOC evaluation.
 
-    detpath: Path to detections
-        detpath.format(classname) should produce the detection results file.
+    boxes[imageid] = N x 5 array of detections in (x1, y1, x2, y2, score)
     classname: Category name (duh)
     [ovthresh]: Overlap threshold (default = 0.5)
     [any_GT_name]: if true any name of ground truth will match detection
     """
-    # assumes detections are in detpath.format(classname)
 
     # extract gt objects for this class
     class_recs = {}
     npos = 0
     cursor.execute('SELECT imagefile FROM images')
-    for (imagefile,) in cursor.fetchall():
+    for (imid, (imagefile,)) in enumerate(cursor.fetchall()):
 
       if any_GT_name:
         cursor.execute('SELECT x1,y1,width,height FROM cars '
@@ -86,20 +84,6 @@ def voc_eval(cursor,
                                'det': det}
 
     print class_recs
-
-    # read dets
-    detfile = detpath.format(classname)
-    assert op.exists(detfile), 'detfile %s does not exist' % detfile
-    with open(detfile, 'r') as f:
-        lines = f.readlines()
-
-    splitlines = [x.strip().split(' ') for x in lines]
-    image_ids = [x[0] for x in splitlines]
-    confidence = np.array([float(x[1]) for x in splitlines])
-    if len(splitlines) > 0:
-        BB = np.array([[float(z) for z in x[2:]] for x in splitlines])
-    else:
-        BB = np.zeros([0, 4])  # if nothing detected, still need to be two-dim.
 
     # sort by confidence
     sorted_ind = np.argsort(-confidence)

@@ -47,11 +47,8 @@ def parse_args(args_list):
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
-    parser.add_argument('--vis', dest='vis', help='visualize detections',
-                        action='store_true')
-    parser.add_argument('--num_dets', dest='max_per_image',
-                        help='max number of detections per image',
-                        default=100, type=int)
+    parser.add_argument('--out_db_file', default=':memory:',
+                        help='filepath of output database. Default is in-memory')
 
     if len(args_list) == 0:
         parser.print_help()
@@ -98,7 +95,7 @@ def main(args_list):
     if not cfg.TEST.HAS_RPN:
         imdb.set_proposal_method(cfg.TEST.PROPOSAL_METHOD)
 
-    test_net(net, imdb, max_per_image=args.max_per_image, vis=args.vis)
+    test_net(net, imdb, args.out_db_file)
 
 
 if __name__ == '__main__':

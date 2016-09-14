@@ -9,7 +9,7 @@ import utils.cython_bbox
 import cPickle
 import subprocess
 import uuid
-from voc_eval import voc_eval
+from voc_eval import eval_class
 from fast_rcnn.config import cfg
 import sqlite3
 import sys
@@ -52,6 +52,12 @@ class vehicle(imdb):
   def get_imagefile_at(self, i):
     self.c.execute('SELECT imagefile FROM images')
     return self.c.fetchall()[i][0]
+
+
+  def get_imagefiles(self):
+    self.c.execute('SELECT imagefile FROM images')
+    for imagefile, in self.c.fetchall()[i]:
+      yield imagefile
 
 
   def gt_roidb(self):
@@ -180,48 +186,18 @@ class vehicle(imdb):
 #        return self.create_roidb_from_box_list(box_list, gt_roidb)
 
 
-  def _get_comp_id(self):
-      comp_id = (self._comp_id + '_' + self._salt if self.config['use_salt']
-          else self._comp_id)
-      return comp_id
-
-  def _get_voc_results_file_template(self):
-      # _data_path/results/<comp_id>_det_test_aeroplane.txt
-      filename = self._get_comp_id() + '_det_' + self.name + '_{}.txt'
-      path = os.path.join('/tmp', filename)
-      return path
-
-  def _write_voc_results_file(self, all_boxes):
-      for cls_ind, cls in enumerate(self.classes):
-          if cls == '__background__':
-              continue
-          print 'Writing {} VOC results file'.format(cls)
-          filename = self._get_voc_results_file_template().format(cls)
-          with open(filename, 'wt') as f:
-              for im_ind, index in enumerate(self.image_index):
-                  dets = all_boxes[cls_ind][im_ind]
-                  if dets == []:
-                      continue
-                  # the VOCdevkit expects 1-based indices
-                  for k in xrange(dets.shape[0]):
-                      f.write('{:s} {:.3f} {:.1f} {:.1f} {:.1f} {:.1f}\n'.
-                              format(index, dets[k, -1],
-                                     dets[k, 0] + 1, dets[k, 1] + 1,
-                                     dets[k, 2] + 1, dets[k, 3] + 1))
-
-  def _do_python_eval(self, output_dir = 'output'):
+  def evaluate_detections(self, all_boxes):
       aps = []
       if not os.path.isdir(output_dir):
           os.mkdir(output_dir)
-      for i, cls in enumerate(self._classes):
-          if cls == '__background__':
+      for clsid, cls_name in enumerate(self._classes):
+          if cls_name == '__background__':
               continue
-          filename = self._get_voc_results_file_template().format(cls)
-          rec, prec, ap = voc_eval(
-              self.c, filename, cls, ovthresh=0.5, any_GT_name=True)
+          rec, prec, ap = eval_class (
+              self.c, all_boxes[clsid], cls_name, ovthresh=0.5, any_GT_name=True)
           aps += [ap]
-          print('AP for {} = {:.4f}'.format(cls, ap))
-          with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
+          print('AP for {} = {:.4f}'.format(cls_name, ap))
+          with open(os.path.join(output_dir, cls_name + '_pr.pkl'), 'w') as f:
               cPickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
       print('Mean AP = {:.4f}'.format(np.mean(aps)))
       print('~~~~~~~~')
@@ -230,21 +206,3 @@ class vehicle(imdb):
           print('{:.3f}'.format(ap))
       print('{:.3f}'.format(np.mean(aps)))
       print('~~~~~~~~')
-
-
-  def evaluate_detections(self, all_boxes, output_dir):
-      self._write_voc_results_file(all_boxes)
-      self._do_python_eval(output_dir)
-      for cls in self._classes:
-          if cls == '__background__':
-              continue
-          filename = self._get_voc_results_file_template().format(cls)
-          os.remove(filename)
-
-  def competition_mode(self, on):
-      if on:
-          self.config['use_salt'] = False
-          self.config['cleanup'] = False
-      else:
-          self.config['use_salt'] = True
-          self.config['cleanup'] = True
