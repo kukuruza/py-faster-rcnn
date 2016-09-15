@@ -1,21 +1,12 @@
-#!/usr/bin/env python
-
-# --------------------------------------------------------
-# Fast R-CNN
-# Copyright (c) 2015 Microsoft
-# Licensed under The MIT License [see LICENSE for details]
-# Written by Ross Girshick
-# --------------------------------------------------------
-
-"""Test a Fast R-CNN network on an image database."""
+"""Evaluate net."""
 
 import _init_paths
-from fast_rcnn.test import test_net
 from fast_rcnn.config import cfg, cfg_from_file, cfg_from_list
 from datasets.factory import get_imdb
 import caffe
 import argparse
 import pprint
+import sqlite3
 import time, os, sys, os.path as op
 
 def parse_args(args_list):
@@ -33,15 +24,15 @@ def parse_args(args_list):
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to test on',
                         default='vehicle', type=str)
-    parser.add_argument('--in_db_path', required=True,
-                        help='full path to .db file')
+    parser.add_argument('--gt_db_path', required=True,
+                        help='full path to the ground truth .db file')
     parser.add_argument('--comp', dest='comp_mode', help='competition mode',
                         action='store_true')
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
-    parser.add_argument('--out_db_path', default=':memory:',
-                        help='filepath of output database. Default is in-memory')
+    parser.add_argument('--det_db_path', default=':memory:',
+                        help='full path to the detected .db file')
 
     if len(args_list) == 0:
         parser.print_help()
@@ -80,13 +71,15 @@ def main(args_list):
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     net.name = os.path.splitext(os.path.basename(args.caffemodel))[0]
 
-    imdb = get_imdb(args.imdb_name, args.in_db_path)
+    imdb = get_imdb(args.imdb_name, args.gt_db_path)
     #imdb = get_imdb(args.imdb_name)
     imdb.competition_mode(args.comp_mode)
     if not cfg.TEST.HAS_RPN:
         imdb.set_proposal_method(cfg.TEST.PROPOSAL_METHOD)
 
-    test_net(net, imdb, out_db_path=args.out_db_path)
+    conn_det = sqlite3.connect (args.det_db_path)
+    imdb.evaluate_detections(conn_det.cursor())
+    conn_det.close()
 
 
 if __name__ == '__main__':
