@@ -15,7 +15,6 @@ import numpy as np
 import cv2
 import caffe
 from fast_rcnn.nms_wrapper import nms
-import cPickle
 from utils.blob import im_list_to_blob
 import sqlite3
 
@@ -231,7 +230,7 @@ def apply_nms(all_boxes, thresh):
     return nms_boxes
 
 
-def test_net(net, imdb, thresh=0.05, out_db_file=':memory:'):
+def test_net(net, imdb, thresh=0.05, out_db_path=':memory:'):
   '''Test a Fast R-CNN network on an image database.
   '''
   num_images = imdb.num_images()
@@ -245,7 +244,7 @@ def test_net(net, imdb, thresh=0.05, out_db_file=':memory:'):
 
   reader = ReaderVideo()
 
-  conn_out = sqlite3.connect(out_db_file)
+  conn_out = sqlite3.connect(out_db_path)
   createDb(conn_out)
   c_out = conn_out.cursor()
 
@@ -253,7 +252,6 @@ def test_net(net, imdb, thresh=0.05, out_db_file=':memory:'):
   for imid,image_entry in enumerate(imdb.c.fetchall()):
 
     imagefile = imageField(image_entry, 'imagefile')
-    print image_entry
     s = 'images(imagefile,width,height,src,maskfile,time)'
     c_out.execute('INSERT INTO %s VALUES (?,?,?,?,?,?)' % s, image_entry)
 
@@ -298,8 +296,9 @@ def test_net(net, imdb, thresh=0.05, out_db_file=':memory:'):
     print 'im_detect: {:d}/{:d} {:.3f}s' \
           .format(imid+1, num_images, timer.average_time)
 
+  conn_out.commit()
+
   #print 'Evaluating detections'
   #imdb.evaluate_detections(c_out)
 
-  conn_out.commit()
   conn_out.close()

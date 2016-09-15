@@ -39,15 +39,14 @@ def parse_args(args_list):
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to test on',
                         default='vehicle', type=str)
-    parser.add_argument('--db_path', dest='db_path',
-                        help='full path to .db file',
-                        required=True)
+    parser.add_argument('--in_db_path', required=True,
+                        help='full path to .db file')
     parser.add_argument('--comp', dest='comp_mode', help='competition mode',
                         action='store_true')
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
-    parser.add_argument('--out_db_file', default=':memory:',
+    parser.add_argument('--out_db_path', default=':memory:',
                         help='filepath of output database. Default is in-memory')
 
     if len(args_list) == 0:
@@ -89,13 +88,13 @@ def main(args_list):
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     net.name = os.path.splitext(os.path.basename(args.caffemodel))[0]
 
-    imdb = get_imdb(args.imdb_name, args.db_path)
+    imdb = get_imdb(args.imdb_name, args.in_db_path)
     #imdb = get_imdb(args.imdb_name)
     imdb.competition_mode(args.comp_mode)
     if not cfg.TEST.HAS_RPN:
         imdb.set_proposal_method(cfg.TEST.PROPOSAL_METHOD)
 
-    test_net(net, imdb, args.out_db_file)
+    test_net(net, imdb, args.out_db_path)
 
 
 if __name__ == '__main__':

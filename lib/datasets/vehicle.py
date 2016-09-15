@@ -6,10 +6,9 @@ import numpy as np
 import scipy.sparse
 import scipy.io as sio
 import utils.cython_bbox
-import cPickle
 import subprocess
 import uuid
-from voc_eval import eval_class
+from db_eval import eval_class
 from fast_rcnn.config import cfg
 import sqlite3
 import sys
@@ -194,7 +193,7 @@ class vehicle(imdb):
           if cls_name == '__background__':
               continue
           rec, prec, ap = eval_class (
-              self.c, all_boxes[clsid], cls_name, ovthresh=0.5, any_GT_name=True)
+              self.c, all_boxes[clsid], cls_name=None, ovthresh=0.5)
           aps += [ap]
           print('AP for {} = {:.4f}'.format(cls_name, ap))
           with open(os.path.join(output_dir, cls_name + '_pr.pkl'), 'w') as f:
