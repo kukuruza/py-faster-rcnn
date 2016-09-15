@@ -52,12 +52,7 @@ def eval_class(c_gt,
   fp = np.zeros(len(cars_det), dtype=float)
 
   # 'already_detected' used to penalize multiple detections of same GT box
-  if classname is None:
-    c_gt.execute('SELECT COUNT(*) FROM cars')
-  else:
-    c_gt.execute('SELECT COUNT(*) FROM cars WHERE name=?', (classname,))
-  n_gt = c_gt.fetchone()[0]
-  already_detected = np.zeros(n_gt, dtype=float)
+  already_detected = set()
 
   # go through each detection
   for idet,(imagefile,x1,y1,width,height,score) in enumerate(cars_det):
@@ -66,12 +61,14 @@ def eval_class(c_gt,
 
     # get all GT boxes from the same imagefile [of the same class]
     if classname is None:
-      c_gt.execute('SELECT x1,y1,width,height FROM cars '
+      c_gt.execute('SELECT id,x1,y1,width,height FROM cars '
                      'WHERE imagefile=?', (imagefile,))
     else:
-      c_gt.execute('SELECT x1,y1,width,height FROM cars '
+      c_gt.execute('SELECT id,x1,y1,width,height FROM cars '
                      'WHERE imagefile=? AND name=?', (imagefile,classname))
-    bboxes_gt = np.array([list(bbox) for bbox in c_gt.fetchall()], dtype=float)
+    entries = c_gt.fetchall()
+    carids_gt = [entry[0] for entry in entries]
+    bboxes_gt = np.array([list(entry[1:]) for entry in entries], dtype=float)
 
     # separately manage no GT boxes
     if bboxes_gt.size == 0:
@@ -93,18 +90,21 @@ def eval_class(c_gt,
     # overlaps
     overlaps = inters / uni
     max_overlap = np.max(overlaps)
-    imax_overlap = np.argmax(overlaps)
+    carid_gt = carids_gt[np.argmax(overlaps)]
 
     # if 1) large enough overlap and 2) this GT box was not detected before
-    if max_overlap > ovthresh and not already_detected[imax_overlap]:
+    if max_overlap > ovthresh and not carid_gt in already_detected:
       tp[idet] = 1.
-      already_detected[imax_overlap] = 1.
+      already_detected.add(carid_gt)
     else:
       fp[idet] = 1.
 
-  # print 'fp', fp
-  # print 'tp', tp
-  # print 'already_detected', already_detected
+  # find the number of GT
+  if classname is None:
+    c_gt.execute('SELECT COUNT(*) FROM cars')
+  else:
+    c_gt.execute('SELECT COUNT(*) FROM cars WHERE name=?', (classname,))
+  n_gt = c_gt.fetchone()[0]
 
   # compute precision-recall
   fp = np.cumsum(fp)

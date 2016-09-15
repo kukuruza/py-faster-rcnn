@@ -244,6 +244,8 @@ def test_net(net, imdb, thresh=0.05, out_db_path=':memory:'):
 
   reader = ReaderVideo()
 
+  if os.path.exists(out_db_path):
+    os.remove(out_db_path)
   conn_out = sqlite3.connect(out_db_path)
   createDb(conn_out)
   c_out = conn_out.cursor()
