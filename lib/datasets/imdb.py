@@ -35,7 +35,7 @@ class imdb(object):
         return len(self._classes)
 
     @property
-    def classes(self):
+    def get_classes(self):
         return self._classes
 
     @property

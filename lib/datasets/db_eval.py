@@ -44,35 +44,34 @@ def eval_class(c_gt,
     c_det.execute('SELECT imagefile,x1,y1,width,height,score FROM cars '
                   'ORDER BY score DESC '
                   'WHERE name=?', (classname,))
-  car_entries = c_det.fetchall()
-  print 'Total %d car_entries of class %s' % (len(car_entries), classname)
+  cars_det = c_det.fetchall()
+  print 'Total %d cars_det of class %s' % (len(cars_det), classname)
 
   # go down dets and mark TPs and FPs
-  tp = np.zeros(len(car_entries), type=float)
-  fp = np.zeros(len(car_entries), type=float)
+  tp = np.zeros(len(cars_det), dtype=float)
+  fp = np.zeros(len(cars_det), dtype=float)
 
   # 'already_detected' used to penalize multiple detections of same GT box
   if classname is None:
-    c_gt.execute('SELECT COUNT(*) FROM cars WHERE name=?', (classname,))
-  else:
     c_gt.execute('SELECT COUNT(*) FROM cars')
-  npos = c_gt.getchone()[0]
-  already_detected = np.zeros(npos, type=float)
+  else:
+    c_gt.execute('SELECT COUNT(*) FROM cars WHERE name=?', (classname,))
+  n_gt = c_gt.fetchone()[0]
+  already_detected = np.zeros(n_gt, dtype=float)
 
   # go through each detection
-  for idet,(imagefile,x1,y1,width,height,score) in enumerate(car_entries):
+  for idet,(imagefile,x1,y1,width,height,score) in enumerate(cars_det):
 
-    bbox_det = np.array([x1,y1,width,height], type=float)
+    bbox_det = np.array([x1,y1,width,height], dtype=float)
 
     # get all GT boxes from the same imagefile [of the same class]
     if classname is None:
-      c_gt.execute('SELECT id,x1,y1,width,height FROM cars '
+      c_gt.execute('SELECT x1,y1,width,height FROM cars '
                      'WHERE imagefile=?', (imagefile,))
     else:
-      c_gt.execute('SELECT id,x1,y1,width,height FROM cars '
+      c_gt.execute('SELECT x1,y1,width,height FROM cars '
                      'WHERE imagefile=? AND name=?', (imagefile,classname))
-    entries_gt = c_gt.fetchall()
-    bboxes_gt = np.array([list(bbox) for bbox in entries_gt[1:]], type=float)
+    bboxes_gt = np.array([list(bbox) for bbox in c_gt.fetchall()], dtype=float)
 
     # separately manage no GT boxes
     if bboxes_gt.size == 0:
@@ -80,8 +79,8 @@ def eval_class(c_gt,
       continue
 
     # intersection
-    ixmin = np.maximum(bboxes_gt[0], bbox_det[0])
-    iymin = np.maximum(bboxes_gt[1], bbox_det[1])
+    ixmin = np.maximum(bboxes_gt[:,0], bbox_det[0])
+    iymin = np.maximum(bboxes_gt[:,1], bbox_det[1])
     ixmax = np.minimum(bboxes_gt[:,0]+bboxes_gt[:,2], bbox_det[0]+bbox_det[2])
     iymax = np.minimum(bboxes_gt[:,1]+bboxes_gt[:,3], bbox_det[1]+bbox_det[3])
     iw = np.maximum(ixmax - ixmin, 0.)
@@ -94,7 +93,7 @@ def eval_class(c_gt,
     # overlaps
     overlaps = inters / uni
     max_overlap = np.max(overlaps)
-    imax_overlap = np.argmax(max_overlap)
+    imax_overlap = np.argmax(overlaps)
 
     # if 1) large enough overlap and 2) this GT box was not detected before
     if max_overlap > ovthresh and not already_detected[imax_overlap]:
@@ -103,13 +102,17 @@ def eval_class(c_gt,
     else:
       fp[idet] = 1.
 
+  # print 'fp', fp
+  # print 'tp', tp
+  # print 'already_detected', already_detected
+
   # compute precision-recall
   fp = np.cumsum(fp)
   tp = np.cumsum(tp)
-  rec = tp / float(npos)
+  rec = tp / float(n_gt)
   # avoid divide by zero in case the first detection matches a difficult
   # ground truth
   prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
-  ap = voc_ap(rec, prec, use_07_metric)
+  ap = voc_ap(rec, prec)
 
   return rec, prec, ap

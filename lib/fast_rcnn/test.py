@@ -275,30 +275,33 @@ def test_net(net, imdb, thresh=0.05, out_db_path=':memory:'):
 
     for clsid in xrange(1, scores.shape[1]):  # clsid = 0 is background
 
-      # perform NMS by class
+      # apply threshold
       cls_inds = np.where(scores[:, clsid] > thresh)[0]
       cls_scores = scores[cls_inds, clsid]
       cls_boxes = boxes[cls_inds, clsid*4:(clsid+1)*4]
       cls_dets = np.hstack((cls_boxes, cls_scores[:, np.newaxis])) \
                           .astype(np.float32, copy=False)
+
+      # perform NMS by class
       keep = nms(cls_dets, cfg.TEST.NMS)
       cls_dets = cls_dets[keep, :]
 
       # save the filtered to the db
       for cls_det in cls_dets:
-        score = cls_det[4]
-        box   = cls_det[0:4]
-        s = 'cars(imagefile,name,score,x1,y1,width,height)'
-        v = (imagefile, imdb.classes[clsid], score,
-             box[0], box[1], box[2], box[3])
-        c_out.execute('INSERT INTO %s VALUES (?,?,?,?,?,?,?)' % s, v)
+        score = cls_det.astype(float)[4]
+        roi   = cls_det.astype(int)[0:4]
+        classname = imdb._classes[clsid]
+        s = 'imagefile,name,score,x1,y1,width,height'
+        v = (imagefile, classname, score, 
+             roi[0], roi[1], roi[2]-roi[0], roi[3]-roi[1])
+        c_out.execute('INSERT INTO cars(%s) VALUES (?,?,?,?,?,?,?)' % s, v)
 
-    print 'im_detect: {:d}/{:d} {:.3f}s' \
-          .format(imid+1, num_images, timer.average_time)
+    print 'im_detect: {:d}/{:d} {:.3f}s. Found {:d} objects.' \
+          .format(imid+1, num_images, timer.average_time, len(cls_dets))
 
   conn_out.commit()
 
-  #print 'Evaluating detections'
-  #imdb.evaluate_detections(c_out)
+  print 'Evaluating detections'
+  imdb.evaluate_detections(c_out)
 
   conn_out.close()

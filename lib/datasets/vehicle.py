@@ -24,7 +24,7 @@ class vehicle(imdb):
     self.c    = self.conn.cursor()
 
     self._classes = ('__background__', 'vehicle')
-    self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
+    self._class_to_ind = dict(zip(self.get_classes, xrange(self.num_classes)))
     # Default to roidb handler
     self._roidb_handler = self.selective_search_roidb
     self._salt = str(uuid.uuid4())
@@ -185,19 +185,14 @@ class vehicle(imdb):
 #        return self.create_roidb_from_box_list(box_list, gt_roidb)
 
 
-  def evaluate_detections(self, all_boxes):
+  def evaluate_detections(self, c_out):
       aps = []
-      if not os.path.isdir(output_dir):
-          os.mkdir(output_dir)
       for clsid, cls_name in enumerate(self._classes):
           if cls_name == '__background__':
               continue
-          rec, prec, ap = eval_class (
-              self.c, all_boxes[clsid], cls_name=None, ovthresh=0.5)
+          rec, prec, ap = eval_class (self.c, c_out, classname=None, ovthresh=0.5)
           aps += [ap]
           print('AP for {} = {:.4f}'.format(cls_name, ap))
-          with open(os.path.join(output_dir, cls_name + '_pr.pkl'), 'w') as f:
-              cPickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
       print('Mean AP = {:.4f}'.format(np.mean(aps)))
       print('~~~~~~~~')
       print('Results:')
