@@ -8,10 +8,11 @@ import scipy.io as sio
 import utils.cython_bbox
 import subprocess
 import uuid
-from db_eval import eval_class
 from fast_rcnn.config import cfg
 import sqlite3
 import sys
+sys.path.insert(0, os.path.join(os.getenv('CITY_PATH'), 'src'))
+from learning.dbEvaluate import evalClass
 
 class vehicle(imdb):
   ''' Binary classifier vehicles / nonvehicles '''
@@ -190,7 +191,7 @@ class vehicle(imdb):
       for clsid, cls_name in enumerate(self._classes):
           if cls_name == '__background__':
               continue
-          rec, prec, ap = eval_class (self.c, c_out, classname=None, ovthresh=0.5)
+          rec, prec, ap = evalClass (self.c, c_out, classname=None, ovthresh=0.5)
           aps += [ap]
           print('AP for {} = {:.4f}'.format(cls_name, ap))
       print('Mean AP = {:.4f}'.format(np.mean(aps)))
