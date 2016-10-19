@@ -17,7 +17,7 @@ class vehicle(imdb):
   ''' Binary classifier vehicles / nonvehicles '''
 
   def __init__(self, db_path):
-    imdb.__init__(self, op.basename(db_path))
+    imdb.__init__(self, op.splitext(op.basename(db_path))[0])
 
     assert op.exists(db_path), 'db_path does not exist: %s' % db_path
     self.conn = sqlite3.connect (db_path)
