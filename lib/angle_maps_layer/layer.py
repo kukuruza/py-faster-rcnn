@@ -33,6 +33,7 @@ class AngleMapsLayer(caffe.Layer):
 
     # the shape of last layer map is input by the user
     size = cfg.TOP_MAP_SIZE
+    print 'AngleMapsLayer.setup()', size
     top[0].reshape(1, 1, size[0], size[1])
 
 
