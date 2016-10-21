@@ -86,7 +86,7 @@ def main(args_list):
     if not cfg.TEST.HAS_RPN:
         imdb.set_proposal_method(cfg.TEST.PROPOSAL_METHOD)
 
-    test_net(net, imdb, out_db_path=args.out_db_path)
+    return test_net(net, imdb, out_db_path=args.out_db_path)
 
 
 if __name__ == '__main__':

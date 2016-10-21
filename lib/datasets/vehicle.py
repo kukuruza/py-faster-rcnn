@@ -200,3 +200,4 @@ class vehicle(imdb):
           print('{:.3f}'.format(ap))
       print('{:.3f}'.format(np.mean(aps)))
       print('~~~~~~~~')
+      return np.mean(aps)

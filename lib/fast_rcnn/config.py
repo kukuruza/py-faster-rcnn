@@ -273,7 +273,7 @@ def cfg_from_list(cfg_list):
             assert d.has_key(subkey)
             d = d[subkey]
         subkey = key_list[-1]
-        assert d.has_key(subkey)
+        assert d.has_key(subkey), subkey
         try:
             value = literal_eval(v)
         except:
