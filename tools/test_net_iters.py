@@ -60,6 +60,15 @@ if __name__ == '__main__':
         results[net_name] = test_net.main(args_list_net)
 
     print 'test_net_iter completed evaluation'
-
+    
+    # printout raw dict
     pprint.pprint(results)
+
+    # now assume that each name is of format "*_iternum", e.g. "vgg16_iter_10000"
+    pretty_results = {}
+    for x in results:
+      iternum = int(x.split('_')[-1])
+      pretty_results[iternum] = results[x]
+    for x in sorted(pretty_results.keys()):
+      print '%d\t%.04f' % (x/1000, pretty_results[x])
 
