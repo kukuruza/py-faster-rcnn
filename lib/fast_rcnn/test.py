@@ -254,7 +254,7 @@ def test_net(net, imdb, thresh=0.05, out_db_path=':memory:'):
   for imid,image_entry in enumerate(imdb.c.fetchall()):
 
     imagefile = imageField(image_entry, 'imagefile')
-    s = 'images(imagefile,width,height,src,maskfile,time)'
+    s = 'images(imagefile,src,width,height,maskfile,time)'
     c_out.execute('INSERT INTO %s VALUES (?,?,?,?,?,?)' % s, image_entry)
 
     # filter out any ground truth boxes
