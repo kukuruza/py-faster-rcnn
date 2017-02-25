@@ -30,17 +30,17 @@ def parse_args(args_list):
                         help='GPU device id to use [0]. If negative, train on CPU.',
                         default=0, type=int)
     parser.add_argument('--solver', dest='solver',
-                        help='solver prototxt',
-                        default=None, type=str)
+                        help='solver prototxt (default is for vehicle detection)',
+                        default='models/vehicle1/VGG16/faster_rcnn_end2end/solver.prototxt')
     parser.add_argument('--iters', dest='max_iters',
                         help='number of iterations to train',
                         required=True, type=int)
     parser.add_argument('--weights', dest='pretrained_model',
                         help='initialize with pretrained model weights',
-                        default=None, type=str)
+                        default='data/imagenet_models/VGG16.v2.caffemodel')
     parser.add_argument('--cfg', dest='cfg_file',
                         help='optional config file',
-                        default=None, type=str)
+                        default='experiments/cfgs/faster_rcnn_end2end.yml')
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to train on',
                         default='vehicle', type=str)

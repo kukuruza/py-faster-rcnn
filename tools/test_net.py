@@ -23,13 +23,14 @@ def parse_args(args_list):
     parser.add_argument('--gpu', dest='gpu_id', help='GPU id to use',
                         default=0, type=int)
     parser.add_argument('--def', dest='prototxt',
-                        help='prototxt file defining the network',
-                        default=None, type=str)
+                        help='prototxt file defining the network (default is for cars)',
+                        default='models/vehicle1/VGG16/faster_rcnn_end2end/test.prototxt')
     parser.add_argument('--net', dest='caffemodel',
                         help='model to test',
                         default=None, type=str)
     parser.add_argument('--cfg', dest='cfg_file',
-                        help='optional config file', default=None, type=str)
+                        help='optional config file', 
+                        default='experiments/cfgs/faster_rcnn_end2end.yml')
     parser.add_argument('--imdb', dest='imdb_name',
                         help='dataset to test on',
                         default='vehicle', type=str)

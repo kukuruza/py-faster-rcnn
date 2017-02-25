@@ -58,7 +58,7 @@ __C.TRAIN.BG_THRESH_HI = 0.5
 __C.TRAIN.BG_THRESH_LO = 0.1
 
 # Use horizontally-flipped images during training?
-__C.TRAIN.USE_FLIPPED = True
+__C.TRAIN.USE_FLIPPED = False # db-s dont like True
 
 # Train bounding-box regressors
 __C.TRAIN.BBOX_REG = True
@@ -94,7 +94,7 @@ __C.TRAIN.PROPOSAL_METHOD = 'selective_search'
 # Make minibatches from images that have similar aspect ratios (i.e. both
 # tall and thin or both short and wide) in order to avoid wasting computation
 # on zero-padding.
-__C.TRAIN.ASPECT_GROUPING = True
+__C.TRAIN.ASPECT_GROUPING = False # All images have the same aspect ratio, db-s don't like True
 
 # Use RPN to detect objects
 __C.TRAIN.HAS_RPN = False
@@ -212,7 +212,8 @@ def get_output_dir(out_name):
     """Make output path in the root of output.
     If the directory does not exist, it is created.
     """
-    outdir = osp.abspath(osp.join(__C.ROOT_DIR, 'output', out_name))
+    #outdir = osp.abspath(osp.join(__C.ROOT_DIR, 'output', out_name))
+    outdir = osp.abspath(osp.join(__C.ROOT_DIR, out_name))
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     return outdir
