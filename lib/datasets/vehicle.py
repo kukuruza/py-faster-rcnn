@@ -1,4 +1,6 @@
-import os, os.path as op
+import sys, os, os.path as op
+sys.path.insert(0, op.join(os.getenv('CITY_PATH'), 'src'))
+from learning.dbEvaluate import dbEvalClass
 from datasets.imdb import imdb
 import datasets.ds_utils as ds_utils
 import xml.etree.ElementTree as ET
@@ -8,7 +10,7 @@ import scipy.io as sio
 import utils.cython_bbox
 import subprocess
 import uuid
-from db_eval import eval_class
+#from db_eval import eval_class
 from fast_rcnn.config import cfg
 import sqlite3
 import sys
@@ -185,12 +187,15 @@ class vehicle(imdb):
 #        return self.create_roidb_from_box_list(box_list, gt_roidb)
 
 
-  def evaluate_detections(self, c_out):
+  def evaluate_detections(self, c_det):
       aps = []
       for clsid, cls_name in enumerate(self._classes):
           if cls_name == '__background__':
               continue
-          rec, prec, ap = eval_class (self.c, c_out, classname=None, ovthresh=0.5)
+          rec, prec, ap = dbEvalClass(c_gt=self.c, c_det=c_det, 
+                                    params={'ovthresh': 0.5, 
+                                            'car_constraint': cfg.TEST.CAR_CONSTRAINT})
+          #rec, prec, ap = eval_class (self.c, c_det, classname=None, ovthresh=0.5)
           aps += [ap]
           print('AP for {} = {:.4f}'.format(cls_name, ap))
       print('Mean AP = {:.4f}'.format(np.mean(aps)))

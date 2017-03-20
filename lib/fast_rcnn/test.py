@@ -304,7 +304,7 @@ def test_net(net, imdb, thresh=0.05, out_db_path=':memory:'):
   conn_out.commit()
 
   print 'Evaluating detections'
-  ap = imdb.evaluate_detections(c_out)
+  ap = imdb.evaluate_detections(c_det=c_out)
 
   conn_out.close()
   return ap
