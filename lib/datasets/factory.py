@@ -11,6 +11,7 @@ from datasets.vehicle import vehicle
 import numpy as np
 
 
-def get_imdb(name, db_path):
+def get_imdb(name, db_path, max_images):
     if name == 'vehicle':
-        return vehicle(db_path)
+        return vehicle(db_path, max_images)
+

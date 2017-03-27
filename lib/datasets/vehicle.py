@@ -2,33 +2,38 @@ import sys, os, os.path as op
 sys.path.insert(0, op.join(os.getenv('CITY_PATH'), 'src'))
 from learning.dbEvaluate import dbEvalClass
 from datasets.imdb import imdb
-import datasets.ds_utils as ds_utils
-import xml.etree.ElementTree as ET
 import numpy as np
 import scipy.sparse
-import scipy.io as sio
 import utils.cython_bbox
-import subprocess
+import logging
 import uuid
 #from db_eval import eval_class
 from fast_rcnn.config import cfg
 import sqlite3
-import sys
 
 class vehicle(imdb):
   ''' Binary classifier vehicles / nonvehicles '''
 
-  def __init__(self, db_path):
+  def __init__(self, db_path, max_images):
     imdb.__init__(self, op.splitext(op.basename(db_path))[0])
 
     assert op.exists(db_path), 'db_path does not exist: %s' % db_path
     self.conn = sqlite3.connect (db_path)
     self.c    = self.conn.cursor()
 
+    # option to use only a fraction of the dataset
+    self.max_images = max_images
+    logging.info ('max_images is %s' % str(self.max_images))
+    
+    self.c.execute('SELECT imagefile FROM images')
+    self.imagefiles = self.c.fetchall()
+    if self.max_images is not None and self.max_images < len(self.imagefiles):
+      np.random.shuffle (self.imagefiles)
+      self.imagefiles = self.imagefiles[:self.max_images]
+
     self._classes = ('__background__', 'vehicle')
     self._class_to_ind = dict(zip(self.get_classes, xrange(self.num_classes)))
-    # Default to roidb handler
-    self._roidb_handler = self.selective_search_roidb
+    self._roidb_handler = None
     self._salt = str(uuid.uuid4())
     self._comp_id = 'comp4'
 
@@ -41,24 +46,30 @@ class vehicle(imdb):
 
 
   def num_images(self):
-    self.c.execute('SELECT COUNT(imagefile) FROM images')
-    return self.c.fetchone()[0]
+    return len(self.imagefiles)
 
 
   def _get_widths(self):
-    self.c.execute('SELECT width FROM images')
-    return [width for (width,) in self.c.fetchall()]
+    if self.max_images is None:
+      self.c.execute('SELECT width FROM images')
+      return [width for (width,) in self.c.fetchall()]
+    else: # in case self.max_images is specified, have to go one-by-one
+      widths = []
+      for imagefile in self.imagefiles:
+        self.c.execute('SELECT width FROM images WHERE imagefile=?', imagefile)
+        width = self.c.fetchone()[0]
+        widths.append(width)
 
 
-  def get_imagefile_at(self, i):
-    self.c.execute('SELECT imagefile FROM images')
-    return self.c.fetchall()[i][0]
+#  def get_imagefile_at(self, i):
+#    self.c.execute('SELECT imagefile FROM images')
+#    return self.c.fetchall()[i][0]
 
 
-  def get_imagefiles(self):
-    self.c.execute('SELECT imagefile FROM images')
-    for imagefile, in self.c.fetchall()[i]:
-      yield imagefile
+#  def get_imagefiles(self):
+#    self.c.execute('SELECT imagefile FROM images')
+ #   for imagefile, in self.c.fetchall()[i]:
+ #     yield imagefile
 
 
   def gt_roidb(self):
@@ -67,8 +78,7 @@ class vehicle(imdb):
     """
     gt_roidb = []
 
-    self.c.execute('SELECT imagefile FROM images')
-    for (imagefile,) in self.c.fetchall():
+    for (imagefile,) in self.imagefiles:
 
       self.c.execute('SELECT x1,y1,width,height FROM cars '
                      'WHERE imagefile=?', (imagefile,))
@@ -116,76 +126,6 @@ class vehicle(imdb):
     return gt_roidb
 
 
-  def selective_search_roidb(self):
-    """
-    Return the database of selective search regions of interest.
-    Ground-truth ROIs are also included.
-
-    This function loads/saves from/to a cache file to speed up future calls.
-    """
-    cache_file = os.path.join(self.cache_path,
-                              self.name + '_selective_search_roidb.pkl')
-
-    if os.path.exists(cache_file):
-        with open(cache_file, 'rb') as fid:
-            roidb = cPickle.load(fid)
-        print '{} ss roidb loaded from {}'.format(self.name, cache_file)
-        return roidb
-
-    gt_roidb = self.gt_roidb()
-    ss_roidb = self._load_selective_search_roidb(gt_roidb)
-    roidb = imdb.merge_roidbs(gt_roidb, ss_roidb)
-    
-    with open(cache_file, 'wb') as fid:
-        cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
-    print 'wrote ss roidb to {}'.format(cache_file)
-
-    return roidb
-
-  # def rpn_roidb(self):
-  #   if self._image_set != 'test':
-  #       gt_roidb = self.gt_roidb()
-  #       rpn_roidb = self._load_rpn_roidb(gt_roidb)
-  #       roidb = imdb.merge_roidbs(gt_roidb, rpn_roidb)
-  #   else:
-  #       roidb = self._load_rpn_roidb(None)
-
-  #   return roidb
-
-  # def _load_rpn_roidb(self, gt_roidb):
-  #   filename = self.config['rpn_file']
-  #   print 'loading {}'.format(filename)
-  #   assert os.path.exists(filename), \
-  #          'rpn data not found at: {}'.format(filename)
-  #   with open(filename, 'rb') as f:
-  #       box_list = cPickle.load(f)
-  #   return self.create_roidb_from_box_list(box_list, gt_roidb)
-
-#    def _load_selective_search_roidb(self, gt_roidb):
-#        # replace flickrlogo1 with flickrlogo32 for selective search
-#        idx1 = self.name.find('flickrlogo1')
-#        idx2 = self.name.find('_', idx1+len('flickrlogo1_'))
-#        name = self.name[:idx1] + 'flickrlogo32' + self.name[idx2:]
-#        print name
-#        
-#        filename = os.path.abspath(os.path.join(cfg.DATA_DIR,
-#                                                'selective_search_data',
-#                                                name + '.mat'))
-#        assert os.path.exists(filename), \
-#               'Selective search data not found at: {}'.format(filename)
-#        raw_data = sio.loadmat(filename)['boxes'].ravel()
-#
-#        box_list = []
-#        for i in xrange(raw_data.shape[0]):
-#            boxes = raw_data[i][:, (1, 0, 3, 2)] - 1
-#            keep = ds_utils.unique_boxes(boxes)
-#            boxes = boxes[keep, :]
-#            keep = ds_utils.filter_small_boxes(boxes, self.config['min_size'])
-#            boxes = boxes[keep, :]
-#            box_list.append(boxes)
-#
-#        return self.create_roidb_from_box_list(box_list, gt_roidb)
-
 
   def evaluate_detections(self, c_det):
       aps = []
@@ -206,3 +146,4 @@ class vehicle(imdb):
       print('{:.3f}'.format(np.mean(aps)))
       print('~~~~~~~~')
       return np.mean(aps)
+

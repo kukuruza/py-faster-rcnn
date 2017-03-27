@@ -16,6 +16,7 @@ from datasets.factory import get_imdb
 import caffe
 import argparse
 import pprint
+import logging
 import time, os, sys, os.path as op
 
 def parse_args(args_list):
@@ -28,6 +29,8 @@ def parse_args(args_list):
     parser.add_argument('--net', dest='caffemodel',
                         help='model to test',
                         default=None, type=str)
+    parser.add_argument('--max_images', type=int, required=True,
+                        help='if specified, the max number of images in the dataset')
     parser.add_argument('--cfg', dest='cfg_file',
                         help='optional config file', 
                         default='experiments/cfgs/faster_rcnn_end2end.yml')
@@ -43,16 +46,18 @@ def parse_args(args_list):
                         nargs=argparse.REMAINDER)
     parser.add_argument('--out_db_path', default=':memory:',
                         help='filepath of output database. Default is in-memory')
+    parser.add_argument('--logging_level', default=20, type=int)
 
     if len(args_list) == 0:
         parser.print_help()
         sys.exit(1)
 
-    args = parser.parse_args(args_list)
+    args, unknown_args = parser.parse_known_args(args_list)
     return args
 
 def main(args_list):
     args = parse_args(args_list)
+    logging.basicConfig(level=args.logging_level)
 
     print('Called with args:')
     print(args)
@@ -81,7 +86,9 @@ def main(args_list):
     net = caffe.Net(args.prototxt, args.caffemodel, caffe.TEST)
     net.name = os.path.splitext(os.path.basename(args.caffemodel))[0]
 
-    imdb = get_imdb(args.imdb_name, args.in_db_path)
+    assert args.max_images is not None
+
+    imdb = get_imdb(args.imdb_name, args.in_db_path, max_images=args.max_images)
     #imdb = get_imdb(args.imdb_name)
     imdb.competition_mode(args.comp_mode)
     if not cfg.TEST.HAS_RPN:
@@ -91,6 +98,6 @@ def main(args_list):
 
 
 if __name__ == '__main__':
-    '''Wrap train_net in order to call script from python as well as console.'''
     args_list = sys.argv[1:]
     main(args_list)
+

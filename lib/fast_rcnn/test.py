@@ -250,8 +250,9 @@ def test_net(net, imdb, thresh=0.05, out_db_path=':memory:'):
   createDb(conn_out)
   c_out = conn_out.cursor()
 
-  imdb.c.execute('SELECT * FROM images')
-  for imid,image_entry in enumerate(imdb.c.fetchall()):
+  for imid, imagefile in enumerate(imdb.imagefiles):
+    imdb.c.execute('SELECT * FROM images WHERE imagefile=?', imagefile)
+    image_entry = imdb.c.fetchone()
 
     imagefile = imageField(image_entry, 'imagefile')
     s = 'images(imagefile,src,width,height,maskfile,time)'
